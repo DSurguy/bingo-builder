@@ -39,6 +39,7 @@ export default function InputStep({ onComplete }: Props) {
           InputProps={{
             fullWidth: true
           }}
+          variant="outlined"
         ></TextField>
       </Box>
       <Box className="actions" marginTop={2}>

@@ -1,60 +1,37 @@
-import React, { MouseEvent, useState } from 'react'
-import { TextField, Container, Button, Box, LinearProgress } from '@material-ui/core'
-import lineSeedWords from './lipsumSeed';
-import { getRandomIntInclusive } from './utils/random';
+import React, { useState } from 'react'
+import { Container } from '@material-ui/core'
+import InputStep from './steps/InputStep'
+import RenderStep from './steps/RenderStep'
 import './App.css'
 
+enum Step {
+  input,
+  render
+}
+
 function App() {
-  const lineSeed = new Array(25).fill("").map(stub => {
-    const numberOfWords = getRandomIntInclusive(1, 8);
-    return new Array(numberOfWords).fill("").map(innerStub => lineSeedWords[getRandomIntInclusive(0, lineSeedWords.length - 1)]).join(' ');
-  }).join("\n");
-  const [lines, setLines] = useState(lineSeed)
-  const [progress, setProgress] = useState(0)
-  const [inProgress, setInProgress] = useState(false);
+  const [step, setStep] = useState(Step.input);
+  const [linesToRender, setLinesToRender] = useState([] as string[]);
 
-  const onBingoLinesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLines(e.target.value)
+  const onInputStepComplete = (linesToRender: string[]) => {
+    setLinesToRender(linesToRender);
+    setStep(Step.render);
   }
 
-  const onDoTheThingClick = (e: MouseEvent) => {
-    setInProgress(true);
-    setProgress(0);
+  const getStepComponent = () => {
+    switch(step) {
+      case Step.input: {
+        return <InputStep onComplete={onInputStepComplete} />;
+      }
+      case Step.render: {
+        return <RenderStep linesToRender={linesToRender} />
+      }
+    }
   }
 
-  return (
-    <Container className="app">
-      <Box className="intro" marginTop={2}>
-        <h2>Hello</h2>
-      </Box>
-      <Box marginTop={2}>
-        <TextField
-          id="bingoLines"
-          label="Bingo Lines"
-          multiline
-          value={lines}
-          onChange={onBingoLinesChange}
-          helperText="Enter one bingo action per line"
-          fullWidth
-          InputProps={{
-            fullWidth: true
-          }}
-        ></TextField>
-      </Box>
-      <Box className="actions" marginTop={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={onDoTheThingClick}
-        >
-          Do the thing
-        </Button>
-      </Box>
-      {inProgress && (<Box className="progress" marginTop={2}>
-        <LinearProgress variant="determinate" value={progress} />
-      </Box>)}
-    </Container>
-  )
+  return (<Container className="app">
+    {getStepComponent()}
+  </Container>)
 }
 
 export default App

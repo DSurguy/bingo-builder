@@ -1,7 +1,7 @@
 import React, { useRef, Fragment, useState, useEffect } from 'react';
 import { Box, LinearProgress } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
-import { timeout } from '../utils/timeout';
+import { timeout, waitUntil } from '../utils/timeout';
 
 const useStyles = makeStyles({
   gridRow: {
@@ -62,7 +62,7 @@ export default function RenderStep({ linesToRender }: Props) {
   ];
 
   const gridRows = linesToRender.reduce((rows, line, index) => {
-    const rowIndex = index % 5;
+    const rowIndex = Math.floor(index / 5);
     if (!rows[rowIndex]) rows[rowIndex] = [] as string[];
     rows[rowIndex].push(line);
     return rows;
@@ -70,8 +70,8 @@ export default function RenderStep({ linesToRender }: Props) {
 
   useEffect(() => {
     (async () => {
-      await timeout();
-      if( renderedTextSpan.current!.offsetHeight > 80 && renderState.currentLineStyle < 6 ){
+      await waitUntil(() => renderedTextSpan.current!.innerText.trim() === linesToRender[renderState.currentLine]);
+      if( (renderedTextSpan.current!.offsetHeight > 100 || renderedTextSpan.current!.offsetWidth > 80) && renderState.currentLineStyle < 6 ){
         updateRenderState({
           currentLine: renderState.currentLine,
           currentLineStyle: renderState.currentLineStyle+1
@@ -79,6 +79,7 @@ export default function RenderStep({ linesToRender }: Props) {
       }
       else if( renderState.currentLine === linesToRender.length -1 ){
         //we're done
+        setLineStyles(lineStyles.concat([renderState.currentLineStyle]));
         setProgress(100);
       }
       else {

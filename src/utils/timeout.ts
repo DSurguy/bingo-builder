@@ -10,3 +10,19 @@ export async function timeout(callback: Function = () => {}, duration: number = 
     }, duration);
   });
 }
+
+export async function waitUntil(callback: () => boolean) {
+  return new Promise<void>((resolve, reject) => { 
+    const internalLoop = () => {
+      setTimeout(() => {
+        try {
+          if( callback() ) resolve();
+          else internalLoop();
+        } catch (e) {
+          reject(e);
+        }
+      }, 1);
+    }
+    internalLoop();
+  });
+}

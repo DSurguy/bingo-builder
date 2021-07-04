@@ -1,7 +1,7 @@
 import React, { useRef, Fragment, useState, useEffect } from 'react';
 import { Box, LinearProgress } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
-import { timeout, waitUntil } from '../utils/timeout';
+import { waitUntil } from '../utils/timeout';
 
 const useStyles = makeStyles({
   gridRow: {
@@ -93,9 +93,6 @@ export default function RenderStep({ linesToRender }: Props) {
     })()
   }, [renderState]);
 
-  //TODO: Pick a box size and default font
-  // render each line into the box and shrink the font until it fits
-  // store font size by line
   return (
     <Fragment>
       <Box className="intro">

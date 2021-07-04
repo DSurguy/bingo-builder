@@ -2,47 +2,19 @@ import React, { useRef, Fragment, useState, useEffect } from 'react';
 import { Box, LinearProgress } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
 import { waitUntil } from '../utils/timeout';
-
-const useStyles = makeStyles({
-  gridRow: {
-    display: 'flex',
-    alignItems: 'center'
-  },
-  gridItem: {
-    border: '1px solid #444',
-    width: '80px',
-    height: '100px',
-    textAlign: 'center'
-  },
-  font0: {
-    fontSize: '16px'
-  },
-  font1: {
-    fontSize: '15px'
-  },
-  font2: {
-    fontSize: '14px'
-  },
-  font3: {
-    fontSize: '13px'
-  },
-  font4: {
-    fontSize: '12px'
-  },
-  font5: {
-    fontSize: '11px'
-  },
-  font6: {
-    fontSize: '10px'
-  }
-})
+import { fontSizes, gridStyles } from './styles';
 
 type Props = {
   linesToRender: string[];
+  onComplete: (linesAndStyles: {
+    line: string;
+    style: number;
+  }[]) => void;
 }
 
-export default function RenderStep({ linesToRender }: Props) {
-  const classes = useStyles();
+export default function RenderStep({ linesToRender, onComplete }: Props) {
+  const gridClasses = gridStyles();
+  const fontStyles = fontSizes();
   const [lineStyles, setLineStyles] = useState([] as number[]);
   const [progress, setProgress] = useState(0);
   const [renderState, updateRenderState] = useState({
@@ -52,21 +24,14 @@ export default function RenderStep({ linesToRender }: Props) {
   const renderedTextSpan = useRef<HTMLSpanElement>(null);
 
   const fontStyleArray = [
-    classes.font0,
-    classes.font1,
-    classes.font2,
-    classes.font3,
-    classes.font4,
-    classes.font5,
-    classes.font6
+    fontStyles.font0,
+    fontStyles.font1,
+    fontStyles.font2,
+    fontStyles.font3,
+    fontStyles.font4,
+    fontStyles.font5,
+    fontStyles.font6
   ];
-
-  const gridRows = linesToRender.reduce((rows, line, index) => {
-    const rowIndex = Math.floor(index / 5);
-    if (!rows[rowIndex]) rows[rowIndex] = [] as string[];
-    rows[rowIndex].push(line);
-    return rows;
-  }, [] as string[][]);
 
   useEffect(() => {
     (async () => {
@@ -80,7 +45,12 @@ export default function RenderStep({ linesToRender }: Props) {
       else if( renderState.currentLine === linesToRender.length -1 ){
         //we're done
         setLineStyles(lineStyles.concat([renderState.currentLineStyle]));
-        setProgress(100);
+        onComplete(
+          linesToRender.map((line, index) => ({
+            line,
+            style: lineStyles[index]
+          }))
+        )
       }
       else {
         setLineStyles(lineStyles.concat([renderState.currentLineStyle]))
@@ -99,30 +69,15 @@ export default function RenderStep({ linesToRender }: Props) {
         <h2>I am the render step</h2>
       </Box>
       {progress < 100 && <Box className="renderSandbox">
-        <Box className={`${classes.gridItem}`}>
+        <Box className={`${gridClasses.gridItem}`}>
           <span className={fontStyleArray[renderState.currentLineStyle]} ref={renderedTextSpan}>
             {linesToRender[renderState.currentLine]}
           </span>
         </Box>
       </Box>}
-      {progress < 100 && <Box className="progress">
+      <Box className="progress">
         <LinearProgress variant="determinate" value={progress} />
-      </Box>}
-      {progress === 100 && <Box className="grid">
-        {
-          gridRows.map((row, rowIndex) => {
-            return (<Box className={classes.gridRow} key={rowIndex}>
-              {row.map((line, lineIndex) => {
-                const actualLineIndex = rowIndex * 5 + lineIndex;
-                return <Box 
-                  className={`${classes.gridItem} ${fontStyleArray[lineStyles[actualLineIndex]]}`}
-                  key={`${rowIndex}.${lineIndex}`}
-                >{line}</Box>
-              })}
-            </Box>)
-          })
-        }
-      </Box>}
+      </Box>
     </Fragment>
   )
 }

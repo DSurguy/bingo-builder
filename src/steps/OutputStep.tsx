@@ -102,7 +102,6 @@ export default function OutputStep({ linesAndStyles }: Props) {
           )
         } catch (e) {
           console.error(e);
-          console.log(box);
         }
       })
     })
@@ -137,6 +136,7 @@ export default function OutputStep({ linesAndStyles }: Props) {
               color="secondary"
               type="button"
               onClick={generatePdf}
+              disabled={!grids || !grids[0]}
             >
               Create PDF
             </Button>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { Container } from '@material-ui/core'
 import InputStep from './steps/InputStep'
 import RenderStep from './steps/RenderStep'
 import OutputStep from './steps/OutputStep'
@@ -27,23 +26,18 @@ function App() {
     setStep(Step.output);
   }
 
-  const getStepComponent = () => {
-    switch(step) {
-      case Step.input: {
-        return <InputStep onComplete={onInputStepComplete} />;
-      }
-      case Step.render: {
-        return <RenderStep linesToRender={linesToRender} onComplete={onRenderStepComplete} />
-      }
-      case Step.output: {
-        return <OutputStep linesAndStyles={linesAndStyles} />
-      }
+  switch(step) {
+    case Step.input: {
+      return <InputStep onComplete={onInputStepComplete} />;
     }
+    case Step.render: {
+      return <RenderStep linesToRender={linesToRender} onComplete={onRenderStepComplete} />
+    }
+    case Step.output: {
+      return <OutputStep linesAndStyles={linesAndStyles} />
+    }
+    default: return <div></div>
   }
-
-  return (<Container className="app">
-    {getStepComponent()}
-  </Container>)
 }
 
 export default App

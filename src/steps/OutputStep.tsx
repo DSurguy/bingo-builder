@@ -1,30 +1,30 @@
-import React, { FormEvent, Fragment, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { Box, TextField, Button } from '@material-ui/core';
-import { fontSizes, gridStyles } from './styles';
+import { makeStyles } from '@material-ui/core/styles';
+import { gridStyles } from './styles';
+import jsPDF from 'jspdf';
+import { LineAndStyle } from '../types';
+import { PaperSizeMillis, SingleBoxSizeMilli } from '../utils/constants';
+import { pxFontToPt } from '../utils/conversions';
+
+const useStyles = makeStyles({
+  gridLayout: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'space-evenly'
+  },
+})
 
 type Props = {
-  linesAndStyles: {
-    line: string;
-    style: number;
-  }[];
+  linesAndStyles: LineAndStyle[];
 }
 
 export default function OutputStep({ linesAndStyles }: Props) {
-  const [numGrids, setNumGrids] = useState(4 as number|string);
+  const [numGrids, setNumGrids] = useState('4');
   const [numGridsError, setNumGridsError] = useState("");
   const [grids, setGrids] = useState([] as Props['linesAndStyles'][][])
   const gridClasses = gridStyles();
-  const fontStyles = fontSizes();
-
-  const fontStyleArray = [
-    fontStyles.font0,
-    fontStyles.font1,
-    fontStyles.font2,
-    fontStyles.font3,
-    fontStyles.font4,
-    fontStyles.font5,
-    fontStyles.font6
-  ];
+  const styles = useStyles();
 
   const linesToGrid = (lines: Props['linesAndStyles']) => lines.reduce((rows, lineAndStyle, index) => {
     const rowIndex = Math.floor(index / 5);
@@ -36,13 +36,12 @@ export default function OutputStep({ linesAndStyles }: Props) {
   const onNumGridsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const parsedValue = parseInt(e.target.value);
     if( isNaN(parsedValue) ) {
-      setNumGrids(e.target.value)
       setNumGridsError("Value must be a number");
     }
     else {
       setNumGridsError("");
-      setNumGrids(parseInt(e.target.value))
     }
+    setNumGrids(e.target.value)
   }
 
   const renderSheets = () => {
@@ -71,9 +70,48 @@ export default function OutputStep({ linesAndStyles }: Props) {
     renderSheets();
   }
 
+  const generatePdf = () => {
+    const grid = grids[0];
+    if( !grid ) return;
+    const pdf = new jsPDF();
+    pdf.setDrawColor('#333333');
+    const GridOffset = {
+      x: PaperSizeMillis.w*0.2/3,
+      y: PaperSizeMillis.h*0.2/3
+    }
+    grid.forEach((row, rowIndex) => {
+      row.forEach((box, boxIndex) => {
+        try {
+          pdf.rect(
+            GridOffset.x + boxIndex * SingleBoxSizeMilli.w, //x
+            GridOffset.y + rowIndex * SingleBoxSizeMilli.h, //y
+            SingleBoxSizeMilli.w, //w
+            SingleBoxSizeMilli.h, //h
+            'S'
+          );
+          pdf.setFontSize(pxFontToPt(box.fontSize))
+          pdf.text(
+            box.line,
+            GridOffset.x + boxIndex * SingleBoxSizeMilli.w + SingleBoxSizeMilli.w/2, //x
+            GridOffset.y + rowIndex * SingleBoxSizeMilli.h, //y,
+            {
+              align: 'center',
+              maxWidth: SingleBoxSizeMilli.w,
+              baseline: 'top'
+            }
+          )
+        } catch (e) {
+          console.error(e);
+          console.log(box);
+        }
+      })
+    })
+    pdf.save('testo.pdf');
+  }
+
   return (
-    <Fragment>
-      <Box className="intro">
+    <div>
+      <Box>
         <form onSubmit={onFormSubmit}>
           <Box marginTop={2}>
             <TextField
@@ -94,25 +132,34 @@ export default function OutputStep({ linesAndStyles }: Props) {
             >
               Generate Sheets
             </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              type="button"
+              onClick={generatePdf}
+            >
+              Create PDF
+            </Button>
           </Box>
         </form>
       </Box>
-      <Box className="grids" marginTop={2}>
-        {grids.map((grid, gridIndex) => {
-          return (<Box className="grid" key={gridIndex} marginTop={4}>
-            {grid.map((row, rowIndex) => {
-              return (<Box className={gridClasses.gridRow} key={rowIndex}>
-                {row.map((lineAndStyle, lineIndex) => {
-                  return <Box 
-                    className={`${gridClasses.gridItem} ${fontStyleArray[lineAndStyle.style]}`}
-                    key={`${rowIndex}.${lineIndex}`}
-                  >{lineAndStyle.line}</Box>
-                })}
-              </Box>)
-            })}
-          </Box>)
-        })}
+      <Box className={styles.gridLayout} marginTop={2}>
+        <Box>
+          {grids[0] && grids[0].map((row, rowIndex) => {
+            return (<Box className={gridClasses.gridRow} key={rowIndex}>
+              {row.map((lineAndStyle, lineIndex) => {
+                return <Box 
+                  className={`${gridClasses.gridItem}`}
+                  style={{
+                    fontSize: `${lineAndStyle.fontSize}px`
+                  }}
+                  key={`${rowIndex}.${lineIndex}`}
+                >{lineAndStyle.line}</Box>
+              })}
+            </Box>)
+          })}
+        </Box>
       </Box>
-    </Fragment>
+    </div>
   )
 }

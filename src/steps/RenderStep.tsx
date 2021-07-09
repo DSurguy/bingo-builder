@@ -1,76 +1,66 @@
-import React, { useRef, Fragment, useState, useEffect } from 'react';
-import { Box, LinearProgress } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useRef, useState, useEffect } from 'react';
+import { Box, LinearProgress, Container } from '@material-ui/core'
 import { waitUntil } from '../utils/timeout';
-import { fontSizes, gridStyles } from './styles';
+import { gridStyles } from './styles';
+import { BaseFontSize, SingleBoxSizePx } from '../utils/constants';
+import { LineAndStyle } from '../types';
 
 type Props = {
   linesToRender: string[];
-  onComplete: (linesAndStyles: {
-    line: string;
-    style: number;
-  }[]) => void;
+  onComplete: (linesAndStyles: LineAndStyle[]) => void;
 }
 
 export default function RenderStep({ linesToRender, onComplete }: Props) {
   const gridClasses = gridStyles();
-  const fontStyles = fontSizes();
-  const [lineStyles, setLineStyles] = useState([] as number[]);
+  const [lineFontSizes, setLineFontSizes] = useState([] as number[]);
   const [progress, setProgress] = useState(0);
   const [renderState, updateRenderState] = useState({
     currentLine: 0,
-    currentLineStyle: 0
+    currentLineFontSize: BaseFontSize
   });
   const renderedTextSpan = useRef<HTMLSpanElement>(null);
-
-  const fontStyleArray = [
-    fontStyles.font0,
-    fontStyles.font1,
-    fontStyles.font2,
-    fontStyles.font3,
-    fontStyles.font4,
-    fontStyles.font5,
-    fontStyles.font6
-  ];
 
   useEffect(() => {
     (async () => {
       await waitUntil(() => renderedTextSpan.current!.innerText.trim() === linesToRender[renderState.currentLine]);
-      if( (renderedTextSpan.current!.offsetHeight > 100 || renderedTextSpan.current!.offsetWidth > 80) && renderState.currentLineStyle < 6 ){
+      if ((renderedTextSpan.current!.offsetHeight > SingleBoxSizePx.h || renderedTextSpan.current!.offsetWidth > SingleBoxSizePx.w) && renderState.currentLineFontSize > 6) {
         updateRenderState({
           currentLine: renderState.currentLine,
-          currentLineStyle: renderState.currentLineStyle+1
+          currentLineFontSize: renderState.currentLineFontSize - 1
         })
       }
-      else if( renderState.currentLine === linesToRender.length -1 ){
+      else if (renderState.currentLine === linesToRender.length - 1) {
         //we're done
-        setLineStyles(lineStyles.concat([renderState.currentLineStyle]));
+        const finalFontSizes = lineFontSizes.concat([renderState.currentLineFontSize]);
+        setLineFontSizes(finalFontSizes);
         onComplete(
           linesToRender.map((line, index) => ({
             line,
-            style: lineStyles[index]
+            fontSize: finalFontSizes[index]
           }))
         )
       }
       else {
-        setLineStyles(lineStyles.concat([renderState.currentLineStyle]))
-        setProgress(Math.floor((renderState.currentLine+1)/linesToRender.length))
+        setLineFontSizes(lineFontSizes.concat([renderState.currentLineFontSize]))
+        setProgress(Math.floor((renderState.currentLine + 1) / linesToRender.length))
         updateRenderState({
-          currentLine: renderState.currentLine+1,
-          currentLineStyle: 0
+          currentLine: renderState.currentLine + 1,
+          currentLineFontSize: BaseFontSize
         })
       }
     })()
   }, [renderState]);
 
   return (
-    <Fragment>
+    <Container>
       <Box className="intro">
         <h2>I am the render step</h2>
       </Box>
       {progress < 100 && <Box className="renderSandbox">
         <Box className={`${gridClasses.gridItem}`}>
-          <span className={fontStyleArray[renderState.currentLineStyle]} ref={renderedTextSpan}>
+          <span style={{
+            fontSize: `${renderState.currentLineFontSize}px`
+          }} ref={renderedTextSpan}>
             {linesToRender[renderState.currentLine]}
           </span>
         </Box>
@@ -78,6 +68,6 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
       <Box className="progress">
         <LinearProgress variant="determinate" value={progress} />
       </Box>
-    </Fragment>
+    </Container>
   )
 }

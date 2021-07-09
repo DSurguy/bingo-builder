@@ -1,5 +1,5 @@
-import React, { Fragment, MouseEvent, useState } from 'react'
-import { TextField, Button, Box } from '@material-ui/core'
+import React, { MouseEvent, useState } from 'react'
+import { TextField, Button, Box, Container } from '@material-ui/core'
 import lineSeedWords from '../lipsumSeed';
 import { getRandomIntInclusive } from '../utils/random';
 
@@ -23,7 +23,7 @@ export default function InputStep({ onComplete }: Props) {
   }
 
   return (
-    <Fragment>
+    <Container>
       <Box className="intro" marginTop={2}>
         <h2>I am the input step</h2>
       </Box>
@@ -51,6 +51,6 @@ export default function InputStep({ onComplete }: Props) {
           Do the thing
         </Button>
       </Box>
-    </Fragment>
+    </Container>
   )
 }

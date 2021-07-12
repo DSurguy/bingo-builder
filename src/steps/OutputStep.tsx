@@ -73,7 +73,9 @@ export default function OutputStep({ linesAndStyles }: Props) {
   const generatePdf = () => {
     const grid = grids[0];
     if( !grid ) return;
-    const pdf = new jsPDF();
+    const pdf = new jsPDF({
+      format: 'letter'
+    });
     pdf.setDrawColor('#333333');
     let currentPage = 0;
     grids.forEach((grid, gridIndex) => {

@@ -75,34 +75,47 @@ export default function OutputStep({ linesAndStyles }: Props) {
     if( !grid ) return;
     const pdf = new jsPDF();
     pdf.setDrawColor('#333333');
-    const GridOffset = {
-      x: PaperSizeMillis.w*0.2/3,
-      y: PaperSizeMillis.h*0.2/3
-    }
-    grid.forEach((row, rowIndex) => {
-      row.forEach((box, boxIndex) => {
-        try {
-          pdf.rect(
-            GridOffset.x + boxIndex * SingleBoxSizeMilli.w, //x
-            GridOffset.y + rowIndex * SingleBoxSizeMilli.h, //y
-            SingleBoxSizeMilli.w, //w
-            SingleBoxSizeMilli.h, //h
-            'S'
-          );
-          pdf.setFontSize(pxFontToPt(box.fontSize))
-          pdf.text(
-            box.line,
-            GridOffset.x + boxIndex * SingleBoxSizeMilli.w + SingleBoxSizeMilli.w/2, //x
-            GridOffset.y + rowIndex * SingleBoxSizeMilli.h, //y,
-            {
-              align: 'center',
-              maxWidth: SingleBoxSizeMilli.w,
-              baseline: 'top'
-            }
-          )
-        } catch (e) {
-          console.error(e);
-        }
+    let currentPage = 0;
+    grids.forEach((grid, gridIndex) => {
+      //currently, we assume 4 grids per page.
+      const pageOffset = Math.floor(gridIndex/4);
+      if( pageOffset !== currentPage ){
+        pdf.addPage();
+        currentPage = pageOffset;
+      }
+      // =[]=[] or =[]
+      const xOffset = gridIndex % 2 === 0 ? PaperSizeMillis.w*0.2/3 : PaperSizeMillis.w*0.4/3 + PaperSizeMillis.w*0.4;
+      // This is basically the row it's in
+      const yOffset = gridIndex % 4 < 2 ? PaperSizeMillis.h*0.2/3 : PaperSizeMillis.h*0.4/3 + PaperSizeMillis.h*0.4;
+      const gridOffset = {
+        x: xOffset,
+        y: yOffset
+      };
+      grid.forEach((row, rowIndex) => {
+        row.forEach((box, boxIndex) => {
+          try {
+            pdf.rect(
+              gridOffset.x + boxIndex * SingleBoxSizeMilli.w, //x
+              gridOffset.y + rowIndex * SingleBoxSizeMilli.h, //y
+              SingleBoxSizeMilli.w, //w
+              SingleBoxSizeMilli.h, //h
+              'S'
+            );
+            pdf.setFontSize(pxFontToPt(box.fontSize))
+            pdf.text(
+              box.line,
+              gridOffset.x + boxIndex * SingleBoxSizeMilli.w + SingleBoxSizeMilli.w/2, //x
+              gridOffset.y + rowIndex * SingleBoxSizeMilli.h, //y,
+              {
+                align: 'center',
+                maxWidth: SingleBoxSizeMilli.w,
+                baseline: 'top'
+              }
+            )
+          } catch (e) {
+            console.error(e);
+          }
+        })
       })
     })
     pdf.save('testo.pdf');

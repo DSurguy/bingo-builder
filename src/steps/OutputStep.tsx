@@ -70,7 +70,7 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
 
     for( let i=0; i<parsedNumGrids; i++ ){
       grids.push(
-        linesToGrid(linesAndStyles.slice(0).sort(randomSort))
+        linesToGrid(linesAndStyles.slice(0).sort(randomSort).slice(0, 25))
       );
     }
 

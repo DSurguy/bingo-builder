@@ -123,7 +123,7 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
         })
       })
     })
-    pdf.save('testo.pdf');
+    pdf.save('bingoSheets.pdf');
   }
 
   return (

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, LinearProgress, Container } from '@material-ui/core'
+import { Box, LinearProgress, Container, Backdrop, Paper } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { waitUntil } from '../utils/timeout';
 import { gridStyles } from './styles';
 import { BaseFontSize, SingleBoxSizePx } from '../utils/constants';
@@ -10,6 +11,13 @@ type Props = {
   onComplete: (linesAndStyles: LineAndStyle[]) => void;
 }
 
+const useStyles = makeStyles({
+  percent: {
+    fontSize: '2rem',
+    textAlign: 'center'
+  }
+})
+
 export default function RenderStep({ linesToRender, onComplete }: Props) {
   const gridClasses = gridStyles();
   const [lineFontSizes, setLineFontSizes] = useState([] as number[]);
@@ -19,6 +27,7 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
     currentLineFontSize: BaseFontSize
   });
   const renderedTextSpan = useRef<HTMLSpanElement>(null);
+  const styles = useStyles();
 
   useEffect(() => {
     (async () => {
@@ -33,16 +42,21 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
         //we're done
         const finalFontSizes = lineFontSizes.concat([renderState.currentLineFontSize]);
         setLineFontSizes(finalFontSizes);
-        onComplete(
-          linesToRender.map((line, index) => ({
-            line,
-            fontSize: finalFontSizes[index]
-          }))
-        )
+        setProgress(100);
+        setTimeout(() => {
+          onComplete(
+            linesToRender.map((line, index) => ({
+              line,
+              fontSize: finalFontSizes[index]
+            }))
+          )
+        }, 1000)
       }
       else {
         setLineFontSizes(lineFontSizes.concat([renderState.currentLineFontSize]))
-        setProgress(Math.floor((renderState.currentLine + 1) / linesToRender.length))
+        setProgress(
+          Math.floor((renderState.currentLine + 1) / linesToRender.length * 100)
+        )
         updateRenderState({
           currentLine: renderState.currentLine + 1,
           currentLineFontSize: BaseFontSize
@@ -53,9 +67,6 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
 
   return (
     <Container>
-      <Box className="intro">
-        <h2>I am the render step</h2>
-      </Box>
       {progress < 100 && <Box className="renderSandbox">
         <Box className={`${gridClasses.gridItem}`}>
           <span style={{
@@ -65,9 +76,22 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
           </span>
         </Box>
       </Box>}
-      <Box className="progress">
-        <LinearProgress variant="determinate" value={progress} />
-      </Box>
+      <Backdrop open>
+        <Paper elevation={1}>
+          <Box margin={2}>
+            <h2>Rendering</h2>
+            <p>
+              We're calculating an appropriate font size for each of your bingo lines, please wait a moment!
+            </p>
+            <p className={styles.percent}>
+              {progress}%
+            </p>
+            <Box className="progress">
+              <LinearProgress variant="determinate" value={progress} />
+            </Box>
+          </Box>
+        </Paper>
+      </Backdrop>
     </Container>
   )
 }

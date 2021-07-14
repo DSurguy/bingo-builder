@@ -1,10 +1,9 @@
 import { makeStyles } from "@material-ui/core"
 import { SingleBoxSizePx } from "../utils/constants"
 
-export const gridStyles = makeStyles({
+export const gridStyles = makeStyles(theme => ({
   gridContainer: {
-    width: '85%',
-    margin: '0 auto'
+    width: '85%'
   },
   grid: {
     width: `${SingleBoxSizePx.w * 5}px`,
@@ -23,4 +22,4 @@ export const gridStyles = makeStyles({
     height: `${SingleBoxSizePx.h}px`,
     textAlign: 'center'
   }
-})
+}))

@@ -1,5 +1,6 @@
 import React, { Fragment, FormEvent, useState, useEffect } from 'react';
 import { Box, TextField, Button, Container } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import { gridStyles } from './styles';
 import jsPDF from 'jspdf';
 import { LineAndStyle } from '../types';
@@ -13,12 +14,23 @@ type Props = {
   freeSpaceSetting: FreeSpaceSetting;
 }
 
+const useButtonGroupStyles = makeStyles((theme) => ({
+  root: {
+    marginTop: theme.spacing(1),
+    '& > *': {
+      margin: theme.spacing(1),
+      marginLeft: 0
+    },
+  },
+}));
+
 export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) {
   const [numGrids, setNumGrids] = useState('4');
   const [numGridsError, setNumGridsError] = useState("");
   const [grids, setGrids] = useState([] as Props['linesAndStyles'][][])
   const gridClasses = gridStyles();
   const [gridScale, setGridScale] = useState(1);
+  const buttonGroupStyles = useButtonGroupStyles();
 
   const linesToGrid = (lines: Props['linesAndStyles']) => {
     let freeSpaceIndex: number;
@@ -141,29 +153,31 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
 
   const renderGrid = () => {
     return (
-      <Box marginBottom={2} className={gridScale !== 1 ? gridClasses.gridContainer : undefined}>
+      <Fragment>
         <Box>
           <h2>Sample Output</h2>
         </Box>
-        <div className={gridClasses.grid} style={{
-          transform: `scale(${gridScale.toFixed(2)})`,
-          transformOrigin: 'top left'
-        }}>
-          {grids[0].map((row, rowIndex) => {
-            return (<Box className={gridClasses.gridRow} key={rowIndex}>
-              {row.map((lineAndStyle, lineIndex) => {
-                return <Box 
-                  className={`${gridClasses.gridItem}`}
-                  style={{
-                    fontSize: `${lineAndStyle.fontSize}px`
-                  }}
-                  key={`${rowIndex}.${lineIndex}`}
-                >{lineAndStyle.line}</Box>
-              })}
-            </Box>)
-          })}
-        </div>
-      </Box>
+        <Box marginBottom={2} className={gridClasses.gridContainer}>
+          <div className={gridClasses.grid} style={{
+            transform: `scale(${gridScale.toFixed(2)})`,
+            transformOrigin: 'top left'
+          }}>
+            {grids[0].map((row, rowIndex) => {
+              return (<Box className={gridClasses.gridRow} key={rowIndex}>
+                {row.map((lineAndStyle, lineIndex) => {
+                  return <Box 
+                    className={`${gridClasses.gridItem}`}
+                    style={{
+                      fontSize: `${lineAndStyle.fontSize}px`
+                    }}
+                    key={`${rowIndex}.${lineIndex}`}
+                  >{lineAndStyle.line}</Box>
+                })}
+              </Box>)
+            })}
+          </div>
+        </Box>
+      </Fragment>
     )
   }
 
@@ -191,7 +205,7 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
                 type="number"
               />
             </Box>
-            <Box marginTop={2}>
+            <Box className={buttonGroupStyles.root}>
               <Button
                 variant="contained"
                 color="primary"
@@ -200,23 +214,20 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
               >
                 Generate Sheets
               </Button>
-              <Box component="span" marginLeft={2}>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  type="button"
-                  onClick={generatePdf}
-                  disabled={!grids || !grids[0]}
-                >
-                  Create PDF
-                </Button>
-              </Box>
+              <Button
+                variant="contained"
+                color="secondary"
+                type="button"
+                onClick={generatePdf}
+                disabled={!grids || !grids[0]}
+              >
+                Create PDF
+              </Button>
             </Box>
           </form>
         </Box>
-        { grids[0] && gridScale === 1 && renderGrid()}
+        { grids[0] && renderGrid()}
       </Container>
-      { grids[0] && gridScale !== 1 && renderGrid()}
     </Fragment>
   )
 }

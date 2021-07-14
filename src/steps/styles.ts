@@ -3,7 +3,7 @@ import { SingleBoxSizePx } from "../utils/constants"
 
 export const gridStyles = makeStyles({
   gridContainer: {
-    width: '90%',
+    width: '85%',
     margin: '0 auto'
   },
   grid: {

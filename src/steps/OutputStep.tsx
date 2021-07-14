@@ -18,7 +18,7 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
   const [numGridsError, setNumGridsError] = useState("");
   const [grids, setGrids] = useState([] as Props['linesAndStyles'][][])
   const gridClasses = gridStyles();
-  const [shouldScaleGrid, setShouldScaleGrid] = useState(false);
+  const [gridScale, setGridScale] = useState(1);
 
   const linesToGrid = (lines: Props['linesAndStyles']) => {
     let freeSpaceIndex: number;
@@ -127,13 +127,45 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
     pdf.save('bingoSheets.pdf');
   }
 
-  const onWindowResize = () => setShouldScaleGrid(window.innerWidth * 0.9 < 400);
+  const onWindowResize = () => setGridScale(
+    window.innerWidth * 0.85 < 400
+    ? window.innerWidth * 0.85 / 400
+    : 1
+  );
 
   useEffect(() => {
     window.addEventListener('resize', onWindowResize)
     onWindowResize();
     return () => window.removeEventListener('resize', onWindowResize);
   }, [])
+
+  const renderGrid = () => {
+    return (
+      <Box marginBottom={2} className={gridScale !== 1 ? gridClasses.gridContainer : undefined}>
+        <Box>
+          <h2>Sample Output</h2>
+        </Box>
+        <div className={gridClasses.grid} style={{
+          transform: `scale(${gridScale.toFixed(2)})`,
+          transformOrigin: 'top left'
+        }}>
+          {grids[0].map((row, rowIndex) => {
+            return (<Box className={gridClasses.gridRow} key={rowIndex}>
+              {row.map((lineAndStyle, lineIndex) => {
+                return <Box 
+                  className={`${gridClasses.gridItem}`}
+                  style={{
+                    fontSize: `${lineAndStyle.fontSize}px`
+                  }}
+                  key={`${rowIndex}.${lineIndex}`}
+                >{lineAndStyle.line}</Box>
+              })}
+            </Box>)
+          })}
+        </div>
+      </Box>
+    )
+  }
 
   return (
     <Fragment>
@@ -182,32 +214,9 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
             </Box>
           </form>
         </Box>
+        { grids[0] && gridScale === 1 && renderGrid()}
       </Container>
-      { grids[0] && (
-        <Box marginBottom={2} className={gridClasses.gridContainer}>
-          <Box>
-            <h2>Sample Output</h2>
-          </Box>
-          <div className={gridClasses.grid} style={shouldScaleGrid ? {
-            transform: `scale(${((window.innerWidth * 0.9) / 400).toFixed(2)})`,
-            transformOrigin: 'top left'
-          } : {}}>
-            {grids[0].map((row, rowIndex) => {
-              return (<Box className={gridClasses.gridRow} key={rowIndex}>
-                {row.map((lineAndStyle, lineIndex) => {
-                  return <Box 
-                    className={`${gridClasses.gridItem}`}
-                    style={{
-                      fontSize: `${lineAndStyle.fontSize}px`
-                    }}
-                    key={`${rowIndex}.${lineIndex}`}
-                  >{lineAndStyle.line}</Box>
-                })}
-              </Box>)
-            })}
-          </div>
-        </Box>
-      )}
+      { grids[0] && gridScale !== 1 && renderGrid()}
     </Fragment>
   )
 }

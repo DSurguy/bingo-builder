@@ -1,5 +1,5 @@
-import React, { FormEvent, useEffect, useState } from 'react';
-import { Box, TextField, Button } from '@material-ui/core';
+import React, { FormEvent, useState } from 'react';
+import { Box, TextField, Button, Container } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { gridStyles } from './styles';
 import jsPDF from 'jspdf';
@@ -8,14 +8,6 @@ import { PaperSizeMillis, SingleBoxSizeMilli } from '../utils/constants';
 import { pxFontToPt } from '../utils/conversions';
 import { FreeSpaceSetting } from './types';
 import { getRandomIntInclusive } from '../utils/random';
-
-const useStyles = makeStyles({
-  gridLayout: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'space-evenly'
-  },
-})
 
 type Props = {
   linesAndStyles: LineAndStyle[];
@@ -27,7 +19,6 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
   const [numGridsError, setNumGridsError] = useState("");
   const [grids, setGrids] = useState([] as Props['linesAndStyles'][][])
   const gridClasses = gridStyles();
-  const styles = useStyles();
 
   const linesToGrid = (lines: Props['linesAndStyles']) => {
     let freeSpaceIndex: number;
@@ -136,12 +127,21 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
   }
 
   return (
-    <div>
+    <Container>
       <Box>
+        <Box marginTop={2}>
+          <h1>Output</h1>
+          <p>
+            Please enter the number of bingo sheets you would like to generate. At this time, 4 sheets will be printed per page.
+          </p>
+          <p>
+            The page size is assumed to be a standard American letter size (8.5in x 11in) (216mm x 279mm).
+          </p>
+        </Box>
         <form onSubmit={onFormSubmit}>
           <Box marginTop={2}>
             <TextField
-              label="How many grids?"
+              label="Number of Bingo Sheets"
               error={!!numGridsError}
               helperText={numGridsError}
               onChange={onNumGridsChange}
@@ -158,35 +158,42 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
             >
               Generate Sheets
             </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              type="button"
-              onClick={generatePdf}
-              disabled={!grids || !grids[0]}
-            >
-              Create PDF
-            </Button>
+            <Box component="span" marginLeft={2}>
+              <Button
+                variant="contained"
+                color="secondary"
+                type="button"
+                onClick={generatePdf}
+                disabled={!grids || !grids[0]}
+              >
+                Create PDF
+              </Button>
+            </Box>
           </Box>
         </form>
       </Box>
-      <Box className={styles.gridLayout} marginTop={2}>
-        <Box>
-          {grids[0] && grids[0].map((row, rowIndex) => {
-            return (<Box className={gridClasses.gridRow} key={rowIndex}>
-              {row.map((lineAndStyle, lineIndex) => {
-                return <Box 
-                  className={`${gridClasses.gridItem}`}
-                  style={{
-                    fontSize: `${lineAndStyle.fontSize}px`
-                  }}
-                  key={`${rowIndex}.${lineIndex}`}
-                >{lineAndStyle.line}</Box>
-              })}
-            </Box>)
-          })}
+      { grids[0] && (
+        <Box marginTop={2}>
+          <Box>
+            <h2>Sample Output</h2>
+          </Box>
+          <Box>
+            {grids[0].map((row, rowIndex) => {
+              return (<Box className={gridClasses.gridRow} key={rowIndex}>
+                {row.map((lineAndStyle, lineIndex) => {
+                  return <Box 
+                    className={`${gridClasses.gridItem}`}
+                    style={{
+                      fontSize: `${lineAndStyle.fontSize}px`
+                    }}
+                    key={`${rowIndex}.${lineIndex}`}
+                  >{lineAndStyle.line}</Box>
+                })}
+              </Box>)
+            })}
+          </Box>
         </Box>
-      </Box>
-    </div>
+      )}
+    </Container>
   )
 }

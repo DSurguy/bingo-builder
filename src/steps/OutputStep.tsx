@@ -6,6 +6,8 @@ import jsPDF from 'jspdf';
 import { LineAndStyle } from '../types';
 import { PaperSizeMillis, SingleBoxSizeMilli } from '../utils/constants';
 import { pxFontToPt } from '../utils/conversions';
+import { FreeSpaceSetting } from './types';
+import { getRandomIntInclusive } from '../utils/random';
 
 const useStyles = makeStyles({
   gridLayout: {
@@ -17,21 +19,31 @@ const useStyles = makeStyles({
 
 type Props = {
   linesAndStyles: LineAndStyle[];
+  freeSpaceSetting: FreeSpaceSetting;
 }
 
-export default function OutputStep({ linesAndStyles }: Props) {
+export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) {
   const [numGrids, setNumGrids] = useState('4');
   const [numGridsError, setNumGridsError] = useState("");
   const [grids, setGrids] = useState([] as Props['linesAndStyles'][][])
   const gridClasses = gridStyles();
   const styles = useStyles();
 
-  const linesToGrid = (lines: Props['linesAndStyles']) => lines.reduce((rows, lineAndStyle, index) => {
-    const rowIndex = Math.floor(index / 5);
-    if (!rows[rowIndex]) rows[rowIndex] = [];
-    rows[rowIndex].push(lineAndStyle);
-    return rows;
-  }, [] as Props['linesAndStyles'][]);
+  const linesToGrid = (lines: Props['linesAndStyles']) => {
+    let freeSpaceIndex: number;
+    switch(freeSpaceSetting) {
+      case FreeSpaceSetting.center: freeSpaceIndex = Math.floor( lines.length / 2); break;
+      case FreeSpaceSetting.random: freeSpaceIndex = getRandomIntInclusive(0, lines.length-1); break;
+      default: freeSpaceIndex = -1;
+    }
+    return lines.reduce((rows, lineAndStyle, index) => {
+      const rowIndex = Math.floor(index / 5);
+      if (!rows[rowIndex]) rows[rowIndex] = [];
+      if( freeSpaceSetting !== FreeSpaceSetting.none && index === freeSpaceIndex ) rows[rowIndex].push({line: "", fontSize: 16})
+      else rows[rowIndex].push(lineAndStyle);
+      return rows;
+    }, [] as Props['linesAndStyles'][]);
+  };
 
   const onNumGridsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const parsedValue = parseInt(e.target.value);

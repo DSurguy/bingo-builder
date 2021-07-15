@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from 'react';
+import React, { Fragment, FormEvent, useState, useEffect } from 'react';
 import { Box, TextField, Button, Container } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { gridStyles } from './styles';
@@ -14,11 +14,23 @@ type Props = {
   freeSpaceSetting: FreeSpaceSetting;
 }
 
+const useButtonGroupStyles = makeStyles((theme) => ({
+  root: {
+    marginTop: theme.spacing(1),
+    '& > *': {
+      margin: theme.spacing(1),
+      marginLeft: 0
+    },
+  },
+}));
+
 export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) {
   const [numGrids, setNumGrids] = useState('4');
   const [numGridsError, setNumGridsError] = useState("");
   const [grids, setGrids] = useState([] as Props['linesAndStyles'][][])
   const gridClasses = gridStyles();
+  const [gridScale, setGridScale] = useState(1);
+  const buttonGroupStyles = useButtonGroupStyles();
 
   const linesToGrid = (lines: Props['linesAndStyles']) => {
     let freeSpaceIndex: number;
@@ -71,6 +83,7 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
   const onFormSubmit = (e: FormEvent) => {
     e.preventDefault();
     renderSheets();
+    onWindowResize();
   }
 
   const generatePdf = () => {
@@ -123,61 +136,32 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
         })
       })
     })
-    pdf.save('testo.pdf');
+    pdf.save('bingoSheets.pdf');
   }
 
-  return (
-    <Container>
-      <Box>
-        <Box marginTop={2}>
-          <h1>Output</h1>
-          <p>
-            Please enter the number of bingo sheets you would like to generate. At this time, 4 sheets will be printed per page.
-          </p>
-          <p>
-            The page size is assumed to be a standard American letter size (8.5in x 11in) (216mm x 279mm).
-          </p>
+  const onWindowResize = () => setGridScale(
+    window.innerWidth * 0.85 < 400
+    ? window.innerWidth * 0.85 / 400
+    : 1
+  );
+
+  useEffect(() => {
+    window.addEventListener('resize', onWindowResize)
+    onWindowResize();
+    return () => window.removeEventListener('resize', onWindowResize);
+  }, [])
+
+  const renderGrid = () => {
+    return (
+      <Fragment>
+        <Box>
+          <h2>Sample Output</h2>
         </Box>
-        <form onSubmit={onFormSubmit}>
-          <Box marginTop={2}>
-            <TextField
-              label="Number of Bingo Sheets"
-              error={!!numGridsError}
-              helperText={numGridsError}
-              onChange={onNumGridsChange}
-              value={numGrids}
-              type="number"
-            />
-          </Box>
-          <Box marginTop={2}>
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              disabled={!!numGridsError}
-            >
-              Generate Sheets
-            </Button>
-            <Box component="span" marginLeft={2}>
-              <Button
-                variant="contained"
-                color="secondary"
-                type="button"
-                onClick={generatePdf}
-                disabled={!grids || !grids[0]}
-              >
-                Create PDF
-              </Button>
-            </Box>
-          </Box>
-        </form>
-      </Box>
-      { grids[0] && (
-        <Box marginTop={2}>
-          <Box>
-            <h2>Sample Output</h2>
-          </Box>
-          <Box>
+        <Box marginBottom={2} className={gridClasses.gridContainer}>
+          <div className={gridClasses.grid} style={{
+            transform: `scale(${gridScale.toFixed(2)})`,
+            transformOrigin: 'top left'
+          }}>
             {grids[0].map((row, rowIndex) => {
               return (<Box className={gridClasses.gridRow} key={rowIndex}>
                 {row.map((lineAndStyle, lineIndex) => {
@@ -191,9 +175,59 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
                 })}
               </Box>)
             })}
-          </Box>
+          </div>
         </Box>
-      )}
-    </Container>
+      </Fragment>
+    )
+  }
+
+  return (
+    <Fragment>
+      <Container>
+        <Box marginTop={2} marginBottom={2}>
+          <Box>
+            <h1>Output</h1>
+            <p>
+              Please enter the number of bingo sheets you would like to generate. At this time, 4 sheets will be printed per page.
+            </p>
+            <p>
+              The page size is assumed to be a standard American letter size (8.5in x 11in) (216mm x 279mm).
+            </p>
+          </Box>
+          <form onSubmit={onFormSubmit}>
+            <Box marginTop={2}>
+              <TextField
+                label="Number of Bingo Sheets"
+                error={!!numGridsError}
+                helperText={numGridsError}
+                onChange={onNumGridsChange}
+                value={numGrids}
+                type="number"
+              />
+            </Box>
+            <Box className={buttonGroupStyles.root}>
+              <Button
+                variant="contained"
+                color="primary"
+                type="submit"
+                disabled={!!numGridsError}
+              >
+                Generate Sheets
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                type="button"
+                onClick={generatePdf}
+                disabled={!grids || !grids[0]}
+              >
+                Create PDF
+              </Button>
+            </Box>
+          </form>
+        </Box>
+        { grids[0] && renderGrid()}
+      </Container>
+    </Fragment>
   )
 }

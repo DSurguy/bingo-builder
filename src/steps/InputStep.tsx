@@ -1,5 +1,6 @@
 import React, { MouseEvent, useState, useEffect } from 'react'
 import { TextField, Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import lineSeedWords from '../lipsumSeed';
 import { getRandomIntInclusive } from '../utils/random';
 import { FreeSpaceSetting, InputStepOutput } from './types';
@@ -8,14 +9,22 @@ type Props = {
   onComplete: (output: InputStepOutput) => void;
 }
 
+const useTextFieldStyles = makeStyles({
+  input: {
+    whiteSpace: 'pre',
+    wordWrap: 'normal',
+    overflowX: 'auto'
+  }
+})
+
 export default function InputStep({ onComplete }: Props) {
   const lineSeed = new Array(25).fill("").map(() => {
     const numberOfWords = getRandomIntInclusive(1, 8);
     return new Array(numberOfWords).fill("").map(() => lineSeedWords[getRandomIntInclusive(0, lineSeedWords.length - 1)]).join(' ');
   }).join("\n");
   const [lines, setLines] = useState(lineSeed)
-  const [numLines, setNumLines] = useState(25)
   const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.none)
+  const textFieldStyles = useTextFieldStyles();
 
   const onBingoLinesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLines(e.target.value)
@@ -31,9 +40,9 @@ export default function InputStep({ onComplete }: Props) {
     });
   }
 
-  useEffect(() => {
-    setNumLines(lines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l).length)
-  }, [lines])
+  const getNumLines = () => lines.split(/[\n\r]/g).map(line => line.trim()).length
+
+  const getNumLinesTrimmed = () => lines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l).length
 
   return (
     <Container>
@@ -54,13 +63,15 @@ export default function InputStep({ onComplete }: Props) {
       <Box marginTop={2}>
         <TextField
           id="bingoLines"
-          label={`Bingo Lines (${numLines})`}
+          label={`Bingo Lines (${getNumLinesTrimmed()})`}
           multiline
+          rows={getNumLines()}
           value={lines}
           onChange={onBingoLinesChange}
           fullWidth
           InputProps={{
-            fullWidth: true
+            fullWidth: true,
+            classes: textFieldStyles
           }}
           variant="outlined"
         ></TextField>

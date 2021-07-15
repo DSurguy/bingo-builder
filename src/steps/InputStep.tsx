@@ -11,7 +11,8 @@ type Props = {
 
 const useTextFieldStyles = makeStyles({
   input: {
-    whiteSpace: 'nowrap',
+    whiteSpace: 'pre',
+    wordWrap: 'normal',
     overflowX: 'auto'
   }
 })
@@ -22,7 +23,6 @@ export default function InputStep({ onComplete }: Props) {
     return new Array(numberOfWords).fill("").map(() => lineSeedWords[getRandomIntInclusive(0, lineSeedWords.length - 1)]).join(' ');
   }).join("\n");
   const [lines, setLines] = useState(lineSeed)
-  const [numLines, setNumLines] = useState(25)
   const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.none)
   const textFieldStyles = useTextFieldStyles();
 
@@ -40,9 +40,9 @@ export default function InputStep({ onComplete }: Props) {
     });
   }
 
-  useEffect(() => {
-    setNumLines(lines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l).length)
-  }, [lines])
+  const getNumLines = () => lines.split(/[\n\r]/g).map(line => line.trim()).length
+
+  const getNumLinesTrimmed = () => lines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l).length
 
   return (
     <Container>
@@ -63,9 +63,9 @@ export default function InputStep({ onComplete }: Props) {
       <Box marginTop={2}>
         <TextField
           id="bingoLines"
-          label={`Bingo Lines (${numLines})`}
+          label={`Bingo Lines (${getNumLinesTrimmed()})`}
           multiline
-          rows={numLines}
+          rows={getNumLines()}
           value={lines}
           onChange={onBingoLinesChange}
           fullWidth

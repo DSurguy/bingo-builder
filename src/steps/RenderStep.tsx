@@ -28,6 +28,7 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
   });
   const renderedTextSpan = useRef<HTMLSpanElement>(null);
   const styles = useStyles();
+  const [openBackdrop, setOpenBackdrop] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -44,13 +45,16 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
         setLineFontSizes(finalFontSizes);
         setProgress(100);
         setTimeout(() => {
-          onComplete(
-            linesToRender.map((line, index) => ({
-              line,
-              fontSize: finalFontSizes[index]
-            }))
-          )
-        }, 1000)
+          setOpenBackdrop(false);
+          setTimeout(() => {
+            onComplete(
+              linesToRender.map((line, index) => ({
+                line,
+                fontSize: finalFontSizes[index]
+              }))
+            )
+          }, 200);
+        }, 500)
       }
       else {
         setLineFontSizes(lineFontSizes.concat([renderState.currentLineFontSize]))
@@ -76,7 +80,7 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
           </span>
         </Box>
       </Box>}
-      <Backdrop open>
+      <Backdrop open={openBackdrop}>
         <Paper elevation={1}>
           <Box margin={2}>
             <h2>Rendering</h2>

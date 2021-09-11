@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import InputStep from './steps/InputStep'
 import RenderStep from './steps/RenderStep'
 import OutputStep from './steps/OutputStep'
 import './App.css'
 import { LineAndStyle, LineAndStyleByDifficulty, LinesByDifficulty } from './types'
 import { FreeSpaceSetting, InputStepOutput, Settings } from './types'
+import packageJson from '../package.json'
 
 enum Step {
   input,
@@ -46,18 +47,26 @@ function App() {
     setStep(Step.output);
   }
 
-  switch(step) {
-    case Step.input: {
-      return <InputStep onComplete={onInputStepComplete} />;
+  const getStepContent = () => {
+    switch(step) {
+      case Step.input: {
+        return <InputStep onComplete={onInputStepComplete} />;
+      }
+      case Step.render: {
+        return <RenderStep linesToRender={linesToRender} onComplete={onRenderStepComplete} />
+      }
+      case Step.output: {
+        return <OutputStep linesAndStyles={linesAndStyles} settings={settings} />
+      }
+      default: return null
     }
-    case Step.render: {
-      return <RenderStep linesToRender={linesToRender} onComplete={onRenderStepComplete} />
-    }
-    case Step.output: {
-      return <OutputStep linesAndStyles={linesAndStyles} settings={settings} />
-    }
-    default: return <div></div>
   }
+
+  useEffect(() => {
+    document.title = `Bingo Builder v${packageJson.version}`;
+  }, [])
+
+  return getStepContent();
 }
 
 export default App

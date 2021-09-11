@@ -3,8 +3,8 @@ import InputStep from './steps/InputStep'
 import RenderStep from './steps/RenderStep'
 import OutputStep from './steps/OutputStep'
 import './App.css'
-import { LineAndStyle } from './types'
-import { FreeSpaceSetting, InputStepOutput } from './steps/types'
+import { LineAndStyle, LineAndStyleByDifficulty, LinesByDifficulty } from './types'
+import { FreeSpaceSetting, InputStepOutput, Settings } from './types'
 
 enum Step {
   input,
@@ -14,17 +14,34 @@ enum Step {
 
 function App() {
   const [step, setStep] = useState(Step.input);
-  const [linesToRender, setLinesToRender] = useState([] as string[]);
-  const [freeSpaceSetting, setFreeSpaceSetting] = useState("" as FreeSpaceSetting);
-  const [linesAndStyles, setLinesAndStyles] = useState([] as LineAndStyle[]);
+  const [linesToRender, setLinesToRender] = useState({
+    easy: [],
+    medium: [],
+    hard: []
+  } as LinesByDifficulty);
+  const [settings, setSettings] = useState({
+    freeSpace: FreeSpaceSetting.none,
+    easy: 0,
+    medium: 0,
+    hard: 0
+  } as Settings);
+  const [linesAndStyles, setLinesAndStyles] = useState({
+    easy: [],
+    medium: [],
+    hard: []
+  } as LineAndStyleByDifficulty);
 
   const onInputStepComplete = (output: InputStepOutput) => {
     setLinesToRender(output.lines);
-    setFreeSpaceSetting(output.freeSpaceSetting);
+    setSettings(output.settings);
     setStep(Step.render);
   }
 
-  const onRenderStepComplete = (linesAndStyles: LineAndStyle[]) => {
+  const onRenderStepComplete = (linesAndStyles: {
+    easy: LineAndStyle[],
+    medium: LineAndStyle[],
+    hard: LineAndStyle[]
+  }) => {
     setLinesAndStyles(linesAndStyles)
     setStep(Step.output);
   }
@@ -37,7 +54,7 @@ function App() {
       return <RenderStep linesToRender={linesToRender} onComplete={onRenderStepComplete} />
     }
     case Step.output: {
-      return <OutputStep linesAndStyles={linesAndStyles} freeSpaceSetting={freeSpaceSetting} />
+      return <OutputStep linesAndStyles={linesAndStyles} settings={settings} />
     }
     default: return <div></div>
   }

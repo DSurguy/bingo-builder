@@ -3,15 +3,14 @@ import { Box, TextField, Button, Container } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { gridStyles } from './styles';
 import jsPDF from 'jspdf';
-import { LineAndStyle } from '../types';
+import { LineAndStyle, LineAndStyleByDifficulty, FreeSpaceSetting, Settings } from '../types';
 import { PaperSizeMillis, SingleBoxSizeMilli } from '../utils/constants';
 import { pxFontToPt } from '../utils/conversions';
-import { FreeSpaceSetting } from './types';
 import { getRandomIntInclusive } from '../utils/random';
 
 type Props = {
-  linesAndStyles: LineAndStyle[];
-  freeSpaceSetting: FreeSpaceSetting;
+  linesAndStyles: LineAndStyleByDifficulty,
+  settings: Settings;
 }
 
 const useButtonGroupStyles = makeStyles((theme) => ({
@@ -24,28 +23,36 @@ const useButtonGroupStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) {
+export default function OutputStep({ linesAndStyles, settings }: Props) {
   const [numGrids, setNumGrids] = useState('4');
   const [numGridsError, setNumGridsError] = useState("");
-  const [grids, setGrids] = useState([] as Props['linesAndStyles'][][])
+  const [grids, setGrids] = useState([] as LineAndStyle[][][])
   const gridClasses = gridStyles();
   const [gridScale, setGridScale] = useState(1);
   const buttonGroupStyles = useButtonGroupStyles();
+  
+  const randomSort = () => {
+    const gen = Math.random();
+    return gen > 0.5 ? 1 : gen < 0.5 ? -1 : 0;
+  }
 
-  const linesToGrid = (lines: Props['linesAndStyles']) => {
-    let freeSpaceIndex: number;
-    switch(freeSpaceSetting) {
-      case FreeSpaceSetting.center: freeSpaceIndex = Math.floor( lines.length / 2); break;
-      case FreeSpaceSetting.random: freeSpaceIndex = getRandomIntInclusive(0, lines.length-1); break;
-      default: freeSpaceIndex = -1;
+  const getRandomLinesForGrid = () => {
+    const randomEasy = linesAndStyles.easy.sort(randomSort).slice(0, settings.easy);
+    const randomMedium = linesAndStyles.medium.sort(randomSort).slice(0, settings.medium);
+    const randomHard = linesAndStyles.hard.sort(randomSort).slice(0, settings.hard);
+    const combinedLines = [...randomEasy, ...randomMedium, ...randomHard].sort(randomSort);
+    if( settings.freeSpace !== FreeSpaceSetting.none ){
+      const freeSpaceLine = {line: "", fontSize: 16};
+      if( settings.freeSpace === FreeSpaceSetting.center ) combinedLines.splice(Math.floor( combinedLines.length / 2), 0, freeSpaceLine)
+      if( settings.freeSpace === FreeSpaceSetting.random ) combinedLines.splice(getRandomIntInclusive(0, combinedLines.length-1), 0, freeSpaceLine)
     }
-    return lines.reduce((rows, lineAndStyle, index) => {
+
+    return combinedLines.reduce((rows, lineAndStyle, index) => {
       const rowIndex = Math.floor(index / 5);
       if (!rows[rowIndex]) rows[rowIndex] = [];
-      if( freeSpaceSetting !== FreeSpaceSetting.none && index === freeSpaceIndex ) rows[rowIndex].push({line: "", fontSize: 16})
-      else rows[rowIndex].push(lineAndStyle);
+      rows[rowIndex].push(lineAndStyle);
       return rows;
-    }, [] as Props['linesAndStyles'][]);
+    }, [] as LineAndStyle[][]);
   };
 
   const onNumGridsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,15 +72,11 @@ export default function OutputStep({ linesAndStyles, freeSpaceSetting }: Props) 
       return;
     }
 
-    const grids: Props['linesAndStyles'][][] = [];
-    const randomSort = () => {
-      const gen = Math.random();
-      return gen > 0.5 ? 1 : gen < 0.5 ? -1 : 0;
-    }
+    const grids: LineAndStyle[][][] = [];
 
     for( let i=0; i<parsedNumGrids; i++ ){
       grids.push(
-        linesToGrid(linesAndStyles.slice(0).sort(randomSort).slice(0, 25))
+        getRandomLinesForGrid()
       );
     }
 

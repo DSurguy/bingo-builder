@@ -1,48 +1,75 @@
-import React, { MouseEvent, useState, useEffect } from 'react'
-import { TextField, Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import React, { MouseEvent, useState } from 'react'
+import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography } from '@material-ui/core'
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import lineSeedWords from '../lipsumSeed';
 import { getRandomIntInclusive } from '../utils/random';
-import { FreeSpaceSetting, InputStepOutput } from './types';
+import { FreeSpaceSetting, InputStepOutput } from '../types';
+import BingoInput from '../components/BingoInput';
 
 type Props = {
   onComplete: (output: InputStepOutput) => void;
 }
 
-const useTextFieldStyles = makeStyles({
-  input: {
-    whiteSpace: 'pre',
-    wordWrap: 'normal',
-    overflowX: 'auto'
-  }
-})
+const lineSeed = (numLines: number) => new Array(numLines).fill("").map(() => {
+  const numberOfWords = getRandomIntInclusive(1, 8);
+  return new Array(numberOfWords).fill("").map(() => lineSeedWords[getRandomIntInclusive(0, lineSeedWords.length - 1)]).join(' ');
+}).join("\n");
 
 export default function InputStep({ onComplete }: Props) {
-  const lineSeed = new Array(25).fill("").map(() => {
-    const numberOfWords = getRandomIntInclusive(1, 8);
-    return new Array(numberOfWords).fill("").map(() => lineSeedWords[getRandomIntInclusive(0, lineSeedWords.length - 1)]).join(' ');
-  }).join("\n");
-  const [lines, setLines] = useState(lineSeed)
+  const theme = useTheme();
+  const [easyLines, setEasyLines] = useState(lineSeed(20))
+  const [mediumLines, setMediumLines] = useState(lineSeed(10))
+  const [hardLines, setHardLines] = useState(lineSeed(5))
+  const [numEasyLinesSetting, setNumEasyLinesSetting] = useState(12)
+  const [numMediumLinesSetting, setNumMediumLinesSetting] = useState(8)
+  const [numHardLinesSetting, setNumHardLinesSetting] = useState(4)
+  const [numEasyLinesError, setNumEasyLinesError] = useState("")
+  const [numMediumLinesError, setNumMediumLinesError] = useState("")
+  const [numHardLinesError, setNumHardLinesError] = useState("")
   const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.none)
-  const textFieldStyles = useTextFieldStyles();
 
-  const onBingoLinesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLines(e.target.value)
-  }
+  const getCleanedLines = (rawLines: string) => rawLines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l);
+  const cleanedEasyLines = getCleanedLines(easyLines);
+  const cleanedMediumLines = getCleanedLines(mediumLines);
+  const cleanedHardLines = getCleanedLines(hardLines);
 
-  const onNextClick = (e: MouseEvent) => {
-    const paddedLines = lines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l);
-    while(paddedLines.length < 25) paddedLines.push("");
+  const onNextClick = (e: MouseEvent) => {    
+    const getPaddedLines = (cleanLines: string[], numSetting: number) => 
+      cleanLines.length < numSetting
+      ? cleanLines.concat(new Array(numSetting - cleanLines.length).fill(""))
+      : cleanLines;
 
     onComplete({
-      lines: paddedLines,
-      freeSpaceSetting
+      lines: {
+        easy: getPaddedLines(cleanedEasyLines, numEasyLinesSetting),
+        medium: getPaddedLines(cleanedMediumLines, numMediumLinesSetting),
+        hard: getPaddedLines(cleanedHardLines, numHardLinesSetting)
+      },
+      settings: {
+        freeSpace: freeSpaceSetting,
+        easy: numEasyLinesSetting,
+        medium: numMediumLinesSetting,
+        hard: numHardLinesSetting
+      }
     });
   }
 
-  const getNumLines = () => lines.split(/[\n\r]/g).map(line => line.trim()).length
+  const onNumLinesSettingChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>, settingFunction: (input: number) => void, settingErrorFunction: (input: string) => void) => {
+    const parsedValue = parseInt(e.target.value);
+    if( isNaN(parsedValue) ) {
+      settingErrorFunction("Value must be a number");
+    }
+    else {
+      settingErrorFunction("");
+    }
+    settingFunction(parsedValue)
+  }
 
-  const getNumLinesTrimmed = () => lines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l).length
+  const fewerLinesThanRequired = 
+    cleanedEasyLines.length < numEasyLinesSetting ||
+    cleanedMediumLines.length < numMediumLinesSetting ||
+    cleanedHardLines.length < numHardLinesSetting;
+  const totalSettingsCount = numEasyLinesSetting + numMediumLinesSetting + numHardLinesSetting + (freeSpaceSetting === FreeSpaceSetting.none ? 0 : 1);
 
   return (
     <Container>
@@ -60,22 +87,11 @@ export default function InputStep({ onComplete }: Props) {
           </p>
         </Box>
       </Box>
-      <Box marginTop={2}>
-        <TextField
-          id="bingoLines"
-          label={`Bingo Lines (${getNumLinesTrimmed()})`}
-          multiline
-          rows={getNumLines()}
-          value={lines}
-          onChange={onBingoLinesChange}
-          fullWidth
-          InputProps={{
-            fullWidth: true,
-            classes: textFieldStyles
-          }}
-          variant="outlined"
-        ></TextField>
-      </Box>
+      <h2>Input Lines</h2>
+      <BingoInput label="Easy" onChange={(lines: string) => setEasyLines(lines)} lines={easyLines} />
+      <BingoInput label="Medium" onChange={(lines: string) => setMediumLines(lines)} lines={mediumLines} />
+      <BingoInput label="Hard" onChange={(lines: string) => setHardLines(lines)} lines={hardLines} />
+      <h2>Settings</h2>
       <Box marginTop={2}>
         <FormControl component="fieldset">
           <FormLabel component="legend">Free Space Position</FormLabel>
@@ -86,11 +102,48 @@ export default function InputStep({ onComplete }: Props) {
           </RadioGroup>
         </FormControl>
       </Box>
+      <Box marginTop={2}>
+        <Box marginTop={1}>
+          <TextField
+            label="Easy Lines Per Sheet"
+            error={!!numEasyLinesError}
+            helperText={numEasyLinesError}
+            onChange={e => onNumLinesSettingChange(e, setNumEasyLinesSetting, setNumEasyLinesError)}
+            value={numEasyLinesSetting}
+            type="number"
+          />
+        </Box>
+        <Box marginTop={1}>
+          <TextField
+            label="Medium Lines Per Sheet"
+            error={!!numMediumLinesError}
+            helperText={numMediumLinesError}
+            onChange={e => onNumLinesSettingChange(e, setNumMediumLinesSetting, setNumMediumLinesError)}
+            value={numMediumLinesSetting}
+            type="number"
+          />
+        </Box>
+        <Box marginTop={1}>
+          <TextField
+            label="Hard Lines Per Sheet"
+            error={!!numHardLinesError}
+            helperText={numHardLinesError}
+            onChange={e => onNumLinesSettingChange(e, setNumHardLinesSetting, setNumHardLinesError)}
+            value={numHardLinesSetting}
+            type="number"
+          />
+        </Box>
+      </Box>
+      <Box margin-top={2}>
+        { totalSettingsCount !== 25 && <p style={{color: theme.palette.error.main }}><b>Error</b>: You must provide settings for 25 boxes per sheet.</p> }
+        { fewerLinesThanRequired && <p style={{color: theme.palette.warning.main }}><b>Note</b>: There are not enough lines to fulfill these requirements, so the rest will be filled with blanks.</p> }
+      </Box>
       <Box className="actions" marginTop={2} marginBottom={2}>
         <Button
           variant="contained"
           color="primary"
           onClick={onNextClick}
+          disabled={totalSettingsCount !== 25}
         >
           Next
         </Button>

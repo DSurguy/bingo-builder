@@ -21,6 +21,6 @@ export const gridStyles = makeStyles(theme => ({
     width: `${SingleBoxSizePx.w}px`,
     height: `${SingleBoxSizePx.h}px`,
     textAlign: 'center',
-    lineHeight: 1.15
+    lineHeight: 1
   }
 }))

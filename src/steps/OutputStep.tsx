@@ -171,7 +171,8 @@ export default function OutputStep({ linesAndStyles, settings }: Props) {
                   return <Box 
                     className={`${gridClasses.gridItem}`}
                     style={{
-                      fontSize: `${lineAndStyle.fontSize}px`
+                      fontSize: `${lineAndStyle.fontSize}px`,
+                      lineHeight: 1.2
                     }}
                     key={`${rowIndex}.${lineIndex}`}
                   >{lineAndStyle.line}</Box>

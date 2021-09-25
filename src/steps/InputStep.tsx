@@ -21,12 +21,12 @@ export default function InputStep({ onComplete }: Props) {
   const [mediumLines, setMediumLines] = useState(lineSeed(10))
   const [hardLines, setHardLines] = useState(lineSeed(5))
   const [numEasyLinesSetting, setNumEasyLinesSetting] = useState(12)
-  const [numMediumLinesSetting, setNumMediumLinesSetting] = useState(8)
-  const [numHardLinesSetting, setNumHardLinesSetting] = useState(4)
+  const [numMediumLinesSetting, setNumMediumLinesSetting] = useState(9)
+  const [numHardLinesSetting, setNumHardLinesSetting] = useState(3)
   const [numEasyLinesError, setNumEasyLinesError] = useState("")
   const [numMediumLinesError, setNumMediumLinesError] = useState("")
   const [numHardLinesError, setNumHardLinesError] = useState("")
-  const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.none)
+  const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.center)
 
   const getCleanedLines = (rawLines: string) => rawLines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l);
   const cleanedEasyLines = getCleanedLines(easyLines);

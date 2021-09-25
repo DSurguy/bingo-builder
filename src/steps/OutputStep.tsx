@@ -126,10 +126,10 @@ export default function OutputStep({ linesAndStyles, settings }: Props) {
             pdf.text(
               box.line,
               gridOffset.x + boxIndex * SingleBoxSizeMilli.w + SingleBoxSizeMilli.w/2, //x
-              gridOffset.y + rowIndex * SingleBoxSizeMilli.h, //y,
+              gridOffset.y + rowIndex * SingleBoxSizeMilli.h + SingleBoxSizeMilli.h*0.05, //y,
               {
                 align: 'center',
-                maxWidth: SingleBoxSizeMilli.w,
+                maxWidth: SingleBoxSizeMilli.w*0.95,
                 baseline: 'top'
               }
             )

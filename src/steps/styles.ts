@@ -20,6 +20,7 @@ export const gridStyles = makeStyles(theme => ({
     boxSizing: 'border-box',
     width: `${SingleBoxSizePx.w}px`,
     height: `${SingleBoxSizePx.h}px`,
-    textAlign: 'center'
+    textAlign: 'center',
+    lineHeight: 1.15
   }
 }))

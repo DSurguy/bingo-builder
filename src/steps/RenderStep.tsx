@@ -39,7 +39,7 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
   useEffect(() => {
     (async () => {
       await waitUntil(() => renderedTextSpan.current!.innerText.trim() === linesToRender[renderState.currentDifficulty][renderState.currentLine]);
-      if ((renderedTextSpan.current!.offsetHeight > SingleBoxSizePx.h || renderedTextSpan.current!.offsetWidth > SingleBoxSizePx.w) && renderState.currentLineFontSize > 6) {
+      if ((renderedTextSpan.current!.offsetHeight > SingleBoxSizePx.h * .95 || renderedTextSpan.current!.offsetWidth > SingleBoxSizePx.w * .95) && renderState.currentLineFontSize > 6) {
         updateRenderState({
           ...renderState,
           currentLineFontSize: renderState.currentLineFontSize - 1

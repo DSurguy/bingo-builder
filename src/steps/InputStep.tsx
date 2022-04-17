@@ -1,25 +1,23 @@
 import React, { MouseEvent, useState } from 'react'
 import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography } from '@material-ui/core'
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import lineSeedWords from '../lipsumSeed';
-import { getRandomIntInclusive } from '../utils/random';
+import { useTheme } from '@material-ui/core/styles';
+import { getSeedLines } from '../lipsumSeed';
+
 import { FreeSpaceSetting, InputStepOutput } from '../types';
 import BingoInput from '../components/BingoInput';
+import { useRecoilState } from 'recoil';
+import { loadedProjectState } from '../store/project';
 
 type Props = {
   onComplete: (output: InputStepOutput) => void;
 }
 
-const lineSeed = (numLines: number) => new Array(numLines).fill("").map(() => {
-  const numberOfWords = getRandomIntInclusive(1, 8);
-  return new Array(numberOfWords).fill("").map(() => lineSeedWords[getRandomIntInclusive(0, lineSeedWords.length - 1)]).join(' ');
-}).join("\n");
-
 export default function InputStep({ onComplete }: Props) {
+  const [loadedProject, setLoadedProject] = useRecoilState(loadedProjectState);
   const theme = useTheme();
-  const [easyLines, setEasyLines] = useState(lineSeed(20))
-  const [mediumLines, setMediumLines] = useState(lineSeed(10))
-  const [hardLines, setHardLines] = useState(lineSeed(5))
+  const [easyLines, setEasyLines] = useState(getSeedLines(20))
+  const [mediumLines, setMediumLines] = useState(getSeedLines(10))
+  const [hardLines, setHardLines] = useState(getSeedLines(5))
   const [numEasyLinesSetting, setNumEasyLinesSetting] = useState(12)
   const [numMediumLinesSetting, setNumMediumLinesSetting] = useState(9)
   const [numHardLinesSetting, setNumHardLinesSetting] = useState(3)

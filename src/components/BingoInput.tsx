@@ -35,7 +35,7 @@ export default function BingoInput({
       <TextField
         label={`${label} Bingo Lines (${getNumLinesTrimmed()})`}
         multiline
-        rows={getNumLines()}
+        minRows={getNumLines()}
         value={lines}
         onChange={handleOnChange}
         fullWidth

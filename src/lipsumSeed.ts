@@ -1,3 +1,5 @@
+import { getRandomIntInclusive } from './utils/random';
+
 const seed = `
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur mattis fermentum semper. Sed sit amet egestas mauris, eu tincidunt libero. In in erat vitae lectus venenatis sollicitudin. Nullam pellentesque tellus a magna ultricies, ac tempor leo ultrices. Ut sit amet nibh iaculis justo lobortis finibus bibendum sit amet tellus. In id bibendum massa. Proin quis consectetur diam. Ut porttitor tortor a orci vestibulum congue eu ut ipsum. Integer egestas a arcu sed iaculis. Nullam lacinia euismod ligula ac sagittis. Nullam et erat sed nisi placerat consequat ut quis erat. Ut at purus cursus, suscipit lacus in, aliquam arcu.
 
@@ -14,5 +16,9 @@ Donec pulvinar metus eget pulvinar laoreet. Pellentesque sagittis molestie torto
 Nulla facilisi. Vivamus commodo tortor massa, et ullamcorper felis aliquam luctus. Curabitur placerat auctor luctus. Morbi eros enim, viverra sed tristique vel, cursus quis nulla. Sed imperdiet laoreet ultricies. Quisque ac iaculis lorem, eu maximus odio. In hac habitasse platea dictumst. Praesent sodales nibh nisi, ac elementum dolor interdum a. Aliquam.
 `;
 
-const words = seed.replace(/[^\d\w\s]/g, '').replace(/\s/g, ' ').split(/\s/).filter(word => word);
-export default words;
+export const words = seed.replace(/[^\d\w\s]/g, '').replace(/\s/g, ' ').split(/\s/).filter(word => word);
+
+export const getSeedLines = (numLines: number) => new Array(numLines).fill("").map(() => {
+  const numberOfWords = getRandomIntInclusive(1, 8);
+  return new Array(numberOfWords).fill("").map(() => words[getRandomIntInclusive(0, words.length - 1)]).join(' ');
+}).join("\n");

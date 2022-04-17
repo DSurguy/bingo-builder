@@ -1,21 +1,16 @@
 import React, { Fragment, useEffect, useState } from 'react'
-import { AppBar, Toolbar, Typography } from '@material-ui/core';
-import { LineAndStyle, LineAndStyleByDifficulty, LinesByDifficulty } from './types'
-import { FreeSpaceSetting, InputStepOutput, Settings } from './types'
+import { useRecoilState } from 'recoil'
+import { LineAndStyle, LineAndStyleByDifficulty, LinesByDifficulty, FreeSpaceSetting, InputStepOutput, Settings, AppStep } from './types'
 import InputStep from './steps/InputStep'
 import RenderStep from './steps/RenderStep'
 import OutputStep from './steps/OutputStep'
+import TopAppBar from './components/TopAppBar';
 import packageJson from '../package.json'
-import './App.css'
-
-enum Step {
-  input,
-  render,
-  output
-}
+import ProjectList from './steps/ProjectList'
+import { appStepState } from './store/appState';
 
 function App() {
-  const [step, setStep] = useState(Step.input);
+  const [step, setStep] = useRecoilState(appStepState);
   const [linesToRender, setLinesToRender] = useState({
     easy: [],
     medium: [],
@@ -36,7 +31,7 @@ function App() {
   const onInputStepComplete = (output: InputStepOutput) => {
     setLinesToRender(output.lines);
     setSettings(output.settings);
-    setStep(Step.render);
+    setStep(AppStep.render);
   }
 
   const onRenderStepComplete = (linesAndStyles: {
@@ -45,18 +40,21 @@ function App() {
     hard: LineAndStyle[]
   }) => {
     setLinesAndStyles(linesAndStyles)
-    setStep(Step.output);
+    setStep(AppStep.output);
   }
 
   const getStepContent = () => {
     switch(step) {
-      case Step.input: {
+      case AppStep.projectList: {
+        return <ProjectList />
+      }
+      case AppStep.input: {
         return <InputStep onComplete={onInputStepComplete} />;
       }
-      case Step.render: {
+      case AppStep.render: {
         return <RenderStep linesToRender={linesToRender} onComplete={onRenderStepComplete} />
       }
-      case Step.output: {
+      case AppStep.output: {
         return <OutputStep linesAndStyles={linesAndStyles} settings={settings} />
       }
       default: return null
@@ -68,11 +66,7 @@ function App() {
   }, [])
 
   return (<Fragment>
-    <AppBar position="static">
-      <Toolbar>
-        <Typography variant="h6">Bingo Builder</Typography>
-      </Toolbar>
-    </AppBar>
+    <TopAppBar />
     {getStepContent()}
   </Fragment>)
 }

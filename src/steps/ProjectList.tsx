@@ -1,14 +1,25 @@
-import React from 'react';
-import { Button, Container } from '@material-ui/core';
-import { Project, NewProject, FreeSpaceSetting, AppStep } from '../types';
+import React, { useEffect, useState } from 'react';
+import { Button, Container, List, ListItem, ListItemText } from '@material-ui/core';
+import { Project, NewProject, FreeSpaceSetting, AppStep, ListItemProject } from '../types';
 import { getSeedLines } from '../lipsumSeed';
-import { loadedProjectState, saveProject } from '../store/project';
+import { getProject, listProjects, loadedProjectState, saveProject } from '../store/project';
 import { useSetRecoilState } from 'recoil';
 import { appStepState } from '../store/appState';
 
 export default function ProjectList() {
   const setLoadedProject = useSetRecoilState(loadedProjectState);
   const setAppStep = useSetRecoilState(appStepState);
+  const [listItemProjects, setListItemProjects] = useState<ListItemProject[]>([])
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setListItemProjects(await listProjects());
+      } catch (e) {
+        console.log("Error listing projects", e);
+      }
+    })()
+  }, [])
 
   const handleNewProjectClick = async () => {
     const newProject: NewProject = {
@@ -39,9 +50,27 @@ export default function ProjectList() {
     setAppStep(AppStep.input);
   }
 
+  const onProjectClick = async (projectId: string) => {
+    try {
+      const project = await getProject(projectId);
+      if( !project ) throw new Error("Project was null");
+      setLoadedProject(project);
+      setAppStep(AppStep.input);
+    } catch (e) {
+      console.error("Error loading project", e);
+    }
+  }
+
   return (
     <Container>
       <Button variant="contained" color="primary" onClick={handleNewProjectClick}>Create New Project</Button>
+      <List aria-label="projects">
+        {listItemProjects.map(project => (
+          <ListItem button key={project.id} onClick={() => onProjectClick(project.id)}>
+            <ListItemText primary={project.name} secondary={project.id} />
+          </ListItem>
+        ))}
+      </List>
     </Container>
   )
 }

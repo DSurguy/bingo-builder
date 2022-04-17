@@ -56,6 +56,11 @@ export type Project = {
   settings: Settings;
 };
 
+export type ListItemProject = {
+  id: string;
+  name: string;
+}
+
 export type AppStore = {
   projects: Project;
 }

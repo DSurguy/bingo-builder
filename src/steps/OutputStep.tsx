@@ -1,5 +1,5 @@
 import React, { Fragment, FormEvent, useState, useEffect } from 'react';
-import { Box, TextField, Button, Container } from '@material-ui/core';
+import { Box, TextField, Button, Container, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { gridStyles } from './styles';
 import jsPDF from 'jspdf';
@@ -7,6 +7,8 @@ import { LineAndStyle, LineAndStyleByDifficulty, FreeSpaceSetting, Settings } fr
 import { PaperSizeMillis, SingleBoxSizeMilli } from '../utils/constants';
 import { pxFontToPt } from '../utils/conversions';
 import { getRandomIntInclusive } from '../utils/random';
+import { useRecoilValue } from 'recoil';
+import { loadedProjectState } from '../store/project';
 
 type Props = {
   linesAndStyles: LineAndStyleByDifficulty,
@@ -23,28 +25,49 @@ const useButtonGroupStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function OutputStep({ linesAndStyles, settings }: Props) {
+export default function OutputStep({ linesAndStyles }: Props) {
   const [numGrids, setNumGrids] = useState('4');
   const [numGridsError, setNumGridsError] = useState("");
   const [grids, setGrids] = useState([] as LineAndStyle[][][])
   const gridClasses = gridStyles();
   const [gridScale, setGridScale] = useState(1);
   const buttonGroupStyles = useButtonGroupStyles();
+  const loadedProject = useRecoilValue(loadedProjectState);
+
+  if( !loadedProject ) {
+    return (
+      <Container>
+        <Typography color="error" variant="h2">Error</Typography>
+        <p>
+          No project was loaded.
+        </p>
+      </Container>
+    )
+  }
   
   const randomSort = () => {
     const gen = Math.random();
     return gen > 0.5 ? 1 : gen < 0.5 ? -1 : 0;
   }
 
+  const getPaddedLines = (cleanLines: LineAndStyle[], numSetting: number) => {
+    if( cleanLines.length < numSetting )
+      return cleanLines.concat(new Array(numSetting - cleanLines.length).fill({
+        line: "",
+        fontSize: 16
+      }))
+    else return cleanLines;
+  }
+
   const getRandomLinesForGrid = () => {
-    const randomEasy = linesAndStyles.easy.sort(randomSort).slice(0, settings.easy);
-    const randomMedium = linesAndStyles.medium.sort(randomSort).slice(0, settings.medium);
-    const randomHard = linesAndStyles.hard.sort(randomSort).slice(0, settings.hard);
+    const randomEasy = getPaddedLines(linesAndStyles.easy, loadedProject.settings.easy).sort(randomSort).slice(0, loadedProject.settings.easy);
+    const randomMedium = getPaddedLines(linesAndStyles.medium, loadedProject.settings.medium).sort(randomSort).slice(0, loadedProject.settings.medium);
+    const randomHard = getPaddedLines(linesAndStyles.hard, loadedProject.settings.hard).sort(randomSort).slice(0, loadedProject.settings.hard);
     const combinedLines = [...randomEasy, ...randomMedium, ...randomHard].sort(randomSort);
-    if( settings.freeSpace !== FreeSpaceSetting.none ){
+    if( loadedProject.settings.freeSpace !== FreeSpaceSetting.none ){
       const freeSpaceLine = {line: "", fontSize: 16};
-      if( settings.freeSpace === FreeSpaceSetting.center ) combinedLines.splice(Math.floor( combinedLines.length / 2), 0, freeSpaceLine)
-      if( settings.freeSpace === FreeSpaceSetting.random ) combinedLines.splice(getRandomIntInclusive(0, combinedLines.length-1), 0, freeSpaceLine)
+      if( loadedProject.settings.freeSpace === FreeSpaceSetting.center ) combinedLines.splice(Math.floor( combinedLines.length / 2), 0, freeSpaceLine)
+      if( loadedProject.settings.freeSpace === FreeSpaceSetting.random ) combinedLines.splice(getRandomIntInclusive(0, combinedLines.length-1), 0, freeSpaceLine)
     }
 
     return combinedLines.reduce((rows, lineAndStyle, index) => {

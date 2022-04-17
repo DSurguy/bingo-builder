@@ -1,32 +1,34 @@
-import React, { MouseEvent, useState } from 'react'
+import React, { MouseEvent, useEffect, useState, useRef } from 'react'
 import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography } from '@material-ui/core'
 import { useTheme } from '@material-ui/core/styles';
 import { getSeedLines } from '../lipsumSeed';
 
-import { FreeSpaceSetting, InputStepOutput } from '../types';
+import { FreeSpaceSetting, InputStepOutput, Project } from '../types';
 import BingoInput from '../components/BingoInput';
 import { useRecoilState } from 'recoil';
-import { loadedProjectState } from '../store/project';
+import { loadedProjectState, saveProject as apiSaveProject } from '../store/project';
 
 type Props = {
   onComplete: (output: InputStepOutput) => void;
 }
 
 export default function InputStep({ onComplete }: Props) {
+  const isMount = useRef(true);
   const [loadedProject, setLoadedProject] = useRecoilState(loadedProjectState);
   const theme = useTheme();
-  const [easyLines, setEasyLines] = useState(getSeedLines(20))
-  const [mediumLines, setMediumLines] = useState(getSeedLines(10))
-  const [hardLines, setHardLines] = useState(getSeedLines(5))
-  const [numEasyLinesSetting, setNumEasyLinesSetting] = useState(12)
-  const [numMediumLinesSetting, setNumMediumLinesSetting] = useState(9)
-  const [numHardLinesSetting, setNumHardLinesSetting] = useState(3)
+  const [easyLines, setEasyLines] = useState(loadedProject?.lines.easy || [])
+  const [mediumLines, setMediumLines] = useState(loadedProject?.lines.medium || [])
+  const [hardLines, setHardLines] = useState(loadedProject?.lines.hard || [])
+  const [numEasyLinesSetting, setNumEasyLinesSetting] = useState(loadedProject?.settings.easy || 0)
+  const [numMediumLinesSetting, setNumMediumLinesSetting] = useState(loadedProject?.settings.medium || 0)
+  const [numHardLinesSetting, setNumHardLinesSetting] = useState(loadedProject?.settings.hard || 0)
   const [numEasyLinesError, setNumEasyLinesError] = useState("")
   const [numMediumLinesError, setNumMediumLinesError] = useState("")
   const [numHardLinesError, setNumHardLinesError] = useState("")
   const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.center)
+  const [currentTimeoutId, setCurrentTimeoutId] = useState<number>(0);
 
-  const getCleanedLines = (rawLines: string) => rawLines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l);
+  const getCleanedLines = (rawLines: string[]) => rawLines.map(line => line.trim()).filter(l => l);
   const cleanedEasyLines = getCleanedLines(easyLines);
   const cleanedMediumLines = getCleanedLines(mediumLines);
   const cleanedHardLines = getCleanedLines(hardLines);
@@ -63,6 +65,53 @@ export default function InputStep({ onComplete }: Props) {
     settingFunction(parsedValue)
   }
 
+  const saveProject = async () => {
+    if( !loadedProject ) return;
+    const updatedProject: Project = {
+      id: loadedProject.id,
+      name: loadedProject.name,
+      lines: {
+        easy: easyLines,
+        medium: mediumLines,
+        hard: hardLines
+      },
+      settings: {
+        freeSpace: freeSpaceSetting,
+        easy: numEasyLinesSetting,
+        medium: numMediumLinesSetting,
+        hard: numHardLinesSetting
+      }
+    }
+
+    try {
+      await apiSaveProject(updatedProject);
+    } catch (e) {
+      console.error("Error saving updated project", e);
+    }
+  }
+  
+  const saveProjectDebounced = () => {
+    if( currentTimeoutId ) clearTimeout(currentTimeoutId);
+    const newTimeoutId = setTimeout(() => {
+      saveProject();
+    }, 1000);
+    setCurrentTimeoutId(newTimeoutId);
+  }
+
+  useEffect(() => {
+    if( !isMount.current ) {
+      saveProjectDebounced();
+    }
+    else isMount.current = false;
+    return () => {
+      clearTimeout(currentTimeoutId);
+    }
+  }, [
+    easyLines,
+    mediumLines,
+    hardLines
+  ])
+
   const fewerLinesThanRequired = 
     cleanedEasyLines.length < numEasyLinesSetting ||
     cleanedMediumLines.length < numMediumLinesSetting ||
@@ -83,9 +132,9 @@ export default function InputStep({ onComplete }: Props) {
         </p>
       </Box>
       <h2>Input Lines</h2>
-      <BingoInput label="Easy" onChange={(lines: string) => setEasyLines(lines)} lines={easyLines} />
-      <BingoInput label="Medium" onChange={(lines: string) => setMediumLines(lines)} lines={mediumLines} />
-      <BingoInput label="Hard" onChange={(lines: string) => setHardLines(lines)} lines={hardLines} />
+      <BingoInput label="Easy" onChange={(lines: string[]) => setEasyLines(lines)} lines={easyLines} />
+      <BingoInput label="Medium" onChange={(lines: string[]) => setMediumLines(lines)} lines={mediumLines} />
+      <BingoInput label="Hard" onChange={(lines: string[]) => setHardLines(lines)} lines={hardLines} />
       <h2>Settings</h2>
       <Box marginTop={2}>
         <FormControl component="fieldset">

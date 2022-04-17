@@ -3,8 +3,8 @@ import { Box, TextField } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles'
 
 type Props = {
-  onChange: (lines: string) => void,
-  lines: string,
+  onChange: (lines: string[]) => void,
+  lines: string[],
   label: string
 }
 
@@ -23,11 +23,11 @@ export default function BingoInput({
 }: Props) {
   const textFieldStyles = useTextFieldStyles();
 
-  const getNumLines = () => lines.split(/[\n\r]/g).map(line => line.trim()).length
-  const getNumLinesTrimmed = () => lines.split(/[\n\r]/g).map(line => line.trim()).filter(l => l).length
+  const getNumLines = () => lines.map(line => line.trim()).length
+  const getNumLinesTrimmed = () => lines.map(line => line.trim()).filter(l => l).length
 
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    onChange(e.target.value.split(/[\n\r]/g));
   }
 
   return (
@@ -36,7 +36,7 @@ export default function BingoInput({
         label={`${label} Bingo Lines (${getNumLinesTrimmed()})`}
         multiline
         minRows={getNumLines()}
-        value={lines}
+        value={lines.join('\r')}
         onChange={handleOnChange}
         fullWidth
         InputProps={{

@@ -1,7 +1,6 @@
 import React, { MouseEvent, useEffect, useState, useRef } from 'react'
-import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography } from '@material-ui/core'
+import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, CircularProgress } from '@material-ui/core'
 import { useTheme } from '@material-ui/core/styles';
-import { getSeedLines } from '../lipsumSeed';
 
 import { FreeSpaceSetting, InputStepOutput, Project } from '../types';
 import BingoInput from '../components/BingoInput';
@@ -27,6 +26,7 @@ export default function InputStep({ onComplete }: Props) {
   const [numHardLinesError, setNumHardLinesError] = useState("")
   const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.center)
   const [currentTimeoutId, setCurrentTimeoutId] = useState<number>(0);
+  const [saveInProgress, setSaveInProgress] = useState(false)
 
   const getCleanedLines = (rawLines: string[]) => rawLines.map(line => line.trim()).filter(l => l);
   const cleanedEasyLines = getCleanedLines(easyLines);
@@ -88,6 +88,7 @@ export default function InputStep({ onComplete }: Props) {
     } catch (e) {
       console.error("Error saving updated project", e);
     }
+    setSaveInProgress(false);
   }
   
   const saveProjectDebounced = () => {
@@ -96,6 +97,7 @@ export default function InputStep({ onComplete }: Props) {
       saveProject();
     }, 1000);
     setCurrentTimeoutId(newTimeoutId);
+    setSaveInProgress(true);
   }
 
   useEffect(() => {
@@ -109,7 +111,11 @@ export default function InputStep({ onComplete }: Props) {
   }, [
     easyLines,
     mediumLines,
-    hardLines
+    hardLines,
+    numEasyLinesSetting,
+    numMediumLinesSetting,
+    numHardLinesSetting,
+    freeSpaceSetting
   ])
 
   const fewerLinesThanRequired = 
@@ -187,9 +193,10 @@ export default function InputStep({ onComplete }: Props) {
           variant="contained"
           color="primary"
           onClick={onNextClick}
-          disabled={totalSettingsCount !== 25}
+          disabled={totalSettingsCount !== 25 || saveInProgress}
         >
           Next
+          { saveInProgress ? (<CircularProgress style={{marginLeft: '0.5em'}} size="1em" />): null }
         </Button>
       </Box>
     </Container>

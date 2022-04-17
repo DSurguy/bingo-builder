@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react'
 import { useRecoilState } from 'recoil'
-import { LineAndStyle, LineAndStyleByDifficulty, LinesByDifficulty, FreeSpaceSetting, InputStepOutput, Settings, AppStep } from './types'
+import { LineAndStyle, LineAndStyleByDifficulty, FreeSpaceSetting, Settings, AppStep } from './types'
 import InputStep from './steps/InputStep'
 import RenderStep from './steps/RenderStep'
 import OutputStep from './steps/OutputStep'
@@ -11,12 +11,7 @@ import { appStepState } from './store/appState';
 
 function App() {
   const [step, setStep] = useRecoilState(appStepState);
-  const [linesToRender, setLinesToRender] = useState({
-    easy: [],
-    medium: [],
-    hard: []
-  } as LinesByDifficulty);
-  const [settings, setSettings] = useState({
+  const [settings] = useState({
     freeSpace: FreeSpaceSetting.none,
     easy: 0,
     medium: 0,
@@ -27,12 +22,6 @@ function App() {
     medium: [],
     hard: []
   } as LineAndStyleByDifficulty);
-
-  const onInputStepComplete = (output: InputStepOutput) => {
-    setLinesToRender(output.lines);
-    setSettings(output.settings);
-    setStep(AppStep.render);
-  }
 
   const onRenderStepComplete = (linesAndStyles: {
     easy: LineAndStyle[],
@@ -49,10 +38,10 @@ function App() {
         return <ProjectList />
       }
       case AppStep.input: {
-        return <InputStep onComplete={onInputStepComplete} />;
+        return <InputStep />;
       }
       case AppStep.render: {
-        return <RenderStep linesToRender={linesToRender} onComplete={onRenderStepComplete} />
+        return <RenderStep onComplete={onRenderStepComplete} />
       }
       case AppStep.output: {
         return <OutputStep linesAndStyles={linesAndStyles} settings={settings} />

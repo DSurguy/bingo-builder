@@ -31,6 +31,16 @@ export type Settings = {
 }
 
 export type InputStepOutput = {
-  lines: LinesByDifficulty,
-  settings: Settings
+  lines: LinesByDifficulty;
+  settings: Settings;
+};
+
+export type Project = {
+  lines: LinesByDifficulty;
+  settings: Settings;
+  name: string;
+};
+
+export type AppStore = {
+  projects: Project;
 }

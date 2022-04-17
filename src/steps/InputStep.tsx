@@ -74,18 +74,15 @@ export default function InputStep({ onComplete }: Props) {
   return (
     <Container>
       <Box className="intro" marginTop={2}>
-        <h1>Bingo Builder</h1>
-        <Box>
-          <h2>Instructions</h2>
-          <p>
-            Please enter as many bingo square entries as you like below, one per line. Empty lines will be ignored.
-          </p>
-          <p>
-            At this time, the bingo board is limited to 5x5 (25) squares. Each board will use a random selection of 
-            25 of the lines below. If fewer than 25 lines are provided, empty spaces will be used to fill the rest
-            of the squares.
-          </p>
-        </Box>
+        <h2>Instructions</h2>
+        <p>
+          Please enter as many bingo square entries as you like below, one per line. Empty lines will be ignored.
+        </p>
+        <p>
+          At this time, the bingo board is limited to 5x5 (25) squares. Each board will use a random selection of 
+          25 of the lines below. If fewer than 25 lines are provided, empty spaces will be used to fill the rest
+          of the squares.
+        </p>
       </Box>
       <h2>Input Lines</h2>
       <BingoInput label="Easy" onChange={(lines: string) => setEasyLines(lines)} lines={easyLines} />

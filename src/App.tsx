@@ -1,11 +1,12 @@
 import React, { Fragment, useEffect, useState } from 'react'
+import { AppBar, Toolbar, Typography } from '@material-ui/core';
+import { LineAndStyle, LineAndStyleByDifficulty, LinesByDifficulty } from './types'
+import { FreeSpaceSetting, InputStepOutput, Settings } from './types'
 import InputStep from './steps/InputStep'
 import RenderStep from './steps/RenderStep'
 import OutputStep from './steps/OutputStep'
-import './App.css'
-import { LineAndStyle, LineAndStyleByDifficulty, LinesByDifficulty } from './types'
-import { FreeSpaceSetting, InputStepOutput, Settings } from './types'
 import packageJson from '../package.json'
+import './App.css'
 
 enum Step {
   input,
@@ -66,7 +67,14 @@ function App() {
     document.title = `Bingo Builder v${packageJson.version}`;
   }, [])
 
-  return getStepContent();
+  return (<Fragment>
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h6">Bingo Builder</Typography>
+      </Toolbar>
+    </AppBar>
+    {getStepContent()}
+  </Fragment>)
 }
 
 export default App

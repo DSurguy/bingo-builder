@@ -2,18 +2,16 @@ import React, { MouseEvent, useEffect, useState, useRef } from 'react'
 import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, CircularProgress } from '@material-ui/core'
 import { useTheme } from '@material-ui/core/styles';
 
-import { FreeSpaceSetting, InputStepOutput, Project } from '../types';
+import { AppStep, FreeSpaceSetting, Project } from '../types';
 import BingoInput from '../components/BingoInput';
-import { useRecoilState } from 'recoil';
-import { loadedProjectState, saveProject as apiSaveProject } from '../store/project';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { getProject, loadedProjectState, saveProject as apiSaveProject } from '../store/project';
+import { appStepState } from '../store/appState';
 
-type Props = {
-  onComplete: (output: InputStepOutput) => void;
-}
-
-export default function InputStep({ onComplete }: Props) {
+export default function InputStep() {
   const isMount = useRef(true);
   const [loadedProject, setLoadedProject] = useRecoilState(loadedProjectState);
+  const setAppStep = useSetRecoilState(appStepState);
   const theme = useTheme();
   const [easyLines, setEasyLines] = useState(loadedProject?.lines.easy || [])
   const [mediumLines, setMediumLines] = useState(loadedProject?.lines.medium || [])
@@ -33,25 +31,19 @@ export default function InputStep({ onComplete }: Props) {
   const cleanedMediumLines = getCleanedLines(mediumLines);
   const cleanedHardLines = getCleanedLines(hardLines);
 
-  const onNextClick = (e: MouseEvent) => {    
-    const getPaddedLines = (cleanLines: string[], numSetting: number) => 
-      cleanLines.length < numSetting
-      ? cleanLines.concat(new Array(numSetting - cleanLines.length).fill(""))
-      : cleanLines;
-
-    onComplete({
-      lines: {
-        easy: getPaddedLines(cleanedEasyLines, numEasyLinesSetting),
-        medium: getPaddedLines(cleanedMediumLines, numMediumLinesSetting),
-        hard: getPaddedLines(cleanedHardLines, numHardLinesSetting)
-      },
-      settings: {
-        freeSpace: freeSpaceSetting,
-        easy: numEasyLinesSetting,
-        medium: numMediumLinesSetting,
-        hard: numHardLinesSetting
-      }
-    });
+  const onNextClick = async (e: MouseEvent) => {    
+    if( currentTimeoutId ) clearTimeout(currentTimeoutId);
+    if( !loadedProject ) return;
+    setSaveInProgress(true);
+    try {
+      await saveProject(false);
+      const savedProject = await getProject(loadedProject!.id);
+      setLoadedProject(savedProject);
+      setAppStep(AppStep.render);
+    } catch (e) {
+      console.error("Error saving project immediately", e);
+      setSaveInProgress(true);
+    }
   }
 
   const onNumLinesSettingChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>, settingFunction: (input: number) => void, settingErrorFunction: (input: string) => void) => {
@@ -65,7 +57,7 @@ export default function InputStep({ onComplete }: Props) {
     settingFunction(parsedValue)
   }
 
-  const saveProject = async () => {
+  const saveProject = async (failSilently: boolean = true) => {
     if( !loadedProject ) return;
     const updatedProject: Project = {
       id: loadedProject.id,
@@ -87,6 +79,7 @@ export default function InputStep({ onComplete }: Props) {
       await apiSaveProject(updatedProject);
     } catch (e) {
       console.error("Error saving updated project", e);
+      if( !failSilently ) throw e;
     }
     setSaveInProgress(false);
   }

@@ -24,10 +24,6 @@ export async function getProject(projectId: string): Promise<Project | null> {
   return projectJson ? JSON.parse(projectJson) : null;
 }
 
-function isNotNullOrUndefined<T extends Object>(input: null | undefined | T): input is T {
-  return input != null;
-}
-
 export async function listProjects(): Promise<ListItemProject[]> {
   const projectKeyRegex = /^projects\/[\w\-]{36}$/i;
   const projectIds = Object.keys(localStorage).filter(key => projectKeyRegex.test(key)).map(path => path.slice(-36));

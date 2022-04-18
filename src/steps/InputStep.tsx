@@ -81,13 +81,13 @@ export default function InputStep() {
       console.error("Error saving updated project", e);
       if( !failSilently ) throw e;
     }
-    setSaveInProgress(false);
   }
   
   const saveProjectDebounced = () => {
     if( currentTimeoutId ) clearTimeout(currentTimeoutId);
-    const newTimeoutId = setTimeout(() => {
-      saveProject();
+    const newTimeoutId = setTimeout(async () => {
+      await saveProject();
+      setSaveInProgress(false);
     }, 1000);
     setCurrentTimeoutId(newTimeoutId);
     setSaveInProgress(true);
@@ -110,6 +110,16 @@ export default function InputStep() {
     numHardLinesSetting,
     freeSpaceSetting
   ])
+
+  //Force a save on unmount
+  useEffect(() => {
+    return () => {
+      saveProject(false).catch(e => {
+        setSaveInProgress(false);
+        console.error("Error saving project on InputStep unmount", e);
+      });
+    }
+  }, [])
 
   const fewerLinesThanRequired = 
     cleanedEasyLines.length < numEasyLinesSetting ||

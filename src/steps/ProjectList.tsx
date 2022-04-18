@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Container, List, ListItem, ListItemText } from '@material-ui/core';
+import { Box, Button, Container, Divider, List, ListItem, ListItemText, Typography } from '@material-ui/core';
 import { Project, NewProject, FreeSpaceSetting, AppStep, ListItemProject } from '../types';
 import { getSeedLines } from '../lipsumSeed';
 import { getProject, listProjects, loadedProjectState, saveProject } from '../store/project';
@@ -63,14 +63,20 @@ export default function ProjectList() {
 
   return (
     <Container>
-      <Button variant="contained" color="primary" onClick={handleNewProjectClick}>Create New Project</Button>
-      <List aria-label="projects">
-        {listItemProjects.map(project => (
-          <ListItem button key={project.id} onClick={() => onProjectClick(project.id)}>
-            <ListItemText primary={project.name} secondary={project.id} />
-          </ListItem>
-        ))}
-      </List>
+      <Box marginTop={2}>
+        <Button variant="contained" color="primary" onClick={handleNewProjectClick}>Create New Project</Button>
+      </Box>
+      <Box marginTop={2}>
+        <Typography variant="h4">Projects</Typography>
+        <Divider />
+        <List aria-label="projects">
+          {listItemProjects.map(project => (
+            <ListItem button key={project.id} onClick={() => onProjectClick(project.id)}>
+              <ListItemText primary={project.name} secondary={project.id} />
+            </ListItem>
+          ))}
+        </List>
+      </Box>
     </Container>
   )
 }

@@ -14,7 +14,11 @@ export async function saveProject(unsavedProject: Project | NewProject): Promise
     ...unsavedProject,
     id: projectId
   };
-  localStorage.setItem(projectKey, JSON.stringify(newProject));
+  try {
+    localStorage.setItem(projectKey, JSON.stringify(newProject));
+  } catch (e) {
+    console.error(`LocalStorage setItem failed for ${projectId}, storage may be full`);
+  }
   return newProject;
 }
 

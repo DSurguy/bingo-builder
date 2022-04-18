@@ -1,7 +1,7 @@
 import React from 'react';
-import { AppBar, Button, Divider, Toolbar, Typography, FormControlLabel, Checkbox } from '@material-ui/core';
-import { appStepState, useStorageSettingState } from '../store/appState';
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { AppBar, Button, Divider, Toolbar, Typography, FormControlLabel, Checkbox, CircularProgress } from '@material-ui/core';
+import { appStepState, saveInProgressState, useStorageSettingState } from '../store/appState';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { AppStep } from '../types';
 import { loadedProjectState } from '../store/project';
 
@@ -9,6 +9,7 @@ export default function TopAppBar() {
   const [useStorageSettingValue, setUseStorageSetting] = useRecoilState(useStorageSettingState);
   const [appStep, setAppStepState] = useRecoilState(appStepState);
   const setLoadedProjectState = useSetRecoilState(loadedProjectState);
+  const saveInProgress = useRecoilValue(saveInProgressState);
 
   const onProjectsButtonClicked = () => {
     if( appStep !== AppStep.projectList ) {
@@ -22,7 +23,8 @@ export default function TopAppBar() {
       <Toolbar>
         <Typography variant="h6">Bingo Builder</Typography>
         <Divider orientation="vertical" flexItem style={{ marginLeft: '1em', marginRight: '1em' }} />
-        <Button onClick={onProjectsButtonClicked} color="inherit">Projects</Button>
+        { saveInProgress ? <CircularProgress size="1em" color="inherit" /> : null}
+        <Button disabled={saveInProgress} onClick={onProjectsButtonClicked} color="inherit">Projects</Button>
         <FormControlLabel
           control={
             <Checkbox

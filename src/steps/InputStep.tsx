@@ -1,30 +1,42 @@
 import React, { MouseEvent, useEffect, useState, useRef } from 'react'
-import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, CircularProgress } from '@material-ui/core'
+import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography, CircularProgress } from '@material-ui/core'
 import { useTheme } from '@material-ui/core/styles';
 
 import { AppStep, FreeSpaceSetting, Project } from '../types';
 import BingoInput from '../components/BingoInput';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { getProject, loadedProjectState, saveProject as apiSaveProject } from '../store/project';
-import { appStepState } from '../store/appState';
+import { appStepState, saveInProgressState } from '../store/appState';
 
 export default function InputStep() {
   const isMount = useRef(true);
   const [loadedProject, setLoadedProject] = useRecoilState(loadedProjectState);
+  if( !loadedProject ) {
+    return (
+      <Container>
+        <Typography color="error" variant="h2">Error</Typography>
+        <p>
+          No project was loaded.
+        </p>
+      </Container>
+    );
+  }
+
   const setAppStep = useSetRecoilState(appStepState);
   const theme = useTheme();
-  const [easyLines, setEasyLines] = useState(loadedProject?.lines.easy || [])
-  const [mediumLines, setMediumLines] = useState(loadedProject?.lines.medium || [])
-  const [hardLines, setHardLines] = useState(loadedProject?.lines.hard || [])
-  const [numEasyLinesSetting, setNumEasyLinesSetting] = useState(loadedProject?.settings.easy || 0)
-  const [numMediumLinesSetting, setNumMediumLinesSetting] = useState(loadedProject?.settings.medium || 0)
-  const [numHardLinesSetting, setNumHardLinesSetting] = useState(loadedProject?.settings.hard || 0)
+  const [projectName, setProjectName] = useState(loadedProject.name)
+  const [easyLines, setEasyLines] = useState(loadedProject.lines.easy)
+  const [mediumLines, setMediumLines] = useState(loadedProject.lines.medium)
+  const [hardLines, setHardLines] = useState(loadedProject.lines.hard)
+  const [numEasyLinesSetting, setNumEasyLinesSetting] = useState(loadedProject.settings.easy)
+  const [numMediumLinesSetting, setNumMediumLinesSetting] = useState(loadedProject.settings.medium)
+  const [numHardLinesSetting, setNumHardLinesSetting] = useState(loadedProject.settings.hard)
   const [numEasyLinesError, setNumEasyLinesError] = useState("")
   const [numMediumLinesError, setNumMediumLinesError] = useState("")
   const [numHardLinesError, setNumHardLinesError] = useState("")
   const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.center)
   const [currentTimeoutId, setCurrentTimeoutId] = useState<number>(0);
-  const [saveInProgress, setSaveInProgress] = useState(false)
+  const [saveInProgress, setSaveInProgress] = useRecoilState(saveInProgressState);
 
   const getCleanedLines = (rawLines: string[]) => rawLines.map(line => line.trim()).filter(l => l);
   const cleanedEasyLines = getCleanedLines(easyLines);
@@ -33,7 +45,6 @@ export default function InputStep() {
 
   const onNextClick = async (e: MouseEvent) => {    
     if( currentTimeoutId ) clearTimeout(currentTimeoutId);
-    if( !loadedProject ) return;
     setSaveInProgress(true);
     try {
       await saveProject(false);
@@ -58,10 +69,9 @@ export default function InputStep() {
   }
 
   const saveProject = async (failSilently: boolean = true) => {
-    if( !loadedProject ) return;
     const updatedProject: Project = {
       id: loadedProject.id,
-      name: loadedProject.name,
+      name: projectName,
       lines: {
         easy: easyLines,
         medium: mediumLines,
@@ -108,18 +118,9 @@ export default function InputStep() {
     numEasyLinesSetting,
     numMediumLinesSetting,
     numHardLinesSetting,
-    freeSpaceSetting
+    freeSpaceSetting,
+    projectName
   ])
-
-  //Force a save on unmount
-  useEffect(() => {
-    return () => {
-      saveProject(false).catch(e => {
-        setSaveInProgress(false);
-        console.error("Error saving project on InputStep unmount", e);
-      });
-    }
-  }, [])
 
   const fewerLinesThanRequired = 
     cleanedEasyLines.length < numEasyLinesSetting ||
@@ -140,6 +141,16 @@ export default function InputStep() {
           of the squares.
         </p>
       </Box>
+      <TextField
+        label="Project Name"
+        error={!projectName}
+        helperText={ !projectName ? "Project name is required" : undefined }
+        onChange={e => setProjectName(e.target.value)}
+        value={projectName}
+        fullWidth
+        variant="outlined"
+        inputProps={{style: {fontSize: '1.5em'}}}
+      />
       <h2>Input Lines</h2>
       <BingoInput label="Easy" onChange={(lines: string[]) => setEasyLines(lines)} lines={easyLines} />
       <BingoInput label="Medium" onChange={(lines: string[]) => setMediumLines(lines)} lines={mediumLines} />

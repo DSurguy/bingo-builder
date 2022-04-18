@@ -46,3 +46,8 @@ export async function listProjects(): Promise<ListItemProject[]> {
   }).filter((f): f is Project => !!f); //Typescript is so dumb sometimes
   return projects;
 }
+
+export async function deleteProject(projectId: string): Promise<void> {
+  const projectKey = `projects/${projectId}`;
+  localStorage.removeItem(projectKey);
+}

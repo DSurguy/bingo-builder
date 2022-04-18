@@ -8,12 +8,15 @@ import { LineAndStyle, LineAndStyleByDifficulty, DifficultyKey, Project } from '
 import { loadedProjectState } from '../store/project';
 import { useRecoilValue } from 'recoil';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   percent: {
     fontSize: '2rem',
     textAlign: 'center'
+  },
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1
   }
-})
+}))
 
 type Props = {
   onComplete: (linesAndStyles: LineAndStyleByDifficulty) => void;
@@ -120,7 +123,7 @@ export default function RenderStep({ onComplete }: Props) {
           </span>
         </Box>
       </Box>}
-      <Backdrop open={openBackdrop}>
+      <Backdrop open={openBackdrop} className={styles.backdrop}>
         <Paper elevation={1}>
           <Box margin={2}>
             <h2>Rendering</h2>

@@ -1,12 +1,24 @@
 import React, { MouseEvent, useEffect, useState, useRef } from 'react'
-import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography, CircularProgress } from '@material-ui/core'
-import { useTheme } from '@material-ui/core/styles';
-
+import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent } from '@material-ui/core'
+import { useTheme, makeStyles } from '@material-ui/core/styles';
 import { AppStep, FreeSpaceSetting, Project } from '../types';
 import BingoInput from '../components/BingoInput';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { getProject, loadedProjectState, saveProject as apiSaveProject } from '../store/project';
+import { deleteProject, getProject, loadedProjectState, saveProject as apiSaveProject } from '../store/project';
 import { appStepState, saveInProgressState } from '../store/appState';
+
+const useErrorButtonStyles = makeStyles(theme => ({
+  root: {
+    color: theme.palette.error.main
+  }
+}))
+
+const useStyles = makeStyles(theme => ({
+  deleteDialogTitle: {
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText
+  }
+}))
 
 export default function InputStep() {
   const isMount = useRef(true);
@@ -24,6 +36,8 @@ export default function InputStep() {
 
   const setAppStep = useSetRecoilState(appStepState);
   const theme = useTheme();
+  const errorButtonClasses = useErrorButtonStyles();
+  const styles = useStyles();
   const [projectName, setProjectName] = useState(loadedProject.name)
   const [easyLines, setEasyLines] = useState(loadedProject.lines.easy)
   const [mediumLines, setMediumLines] = useState(loadedProject.lines.medium)
@@ -37,6 +51,7 @@ export default function InputStep() {
   const [freeSpaceSetting, setFreeSpaceSetting] = useState(FreeSpaceSetting.center)
   const [currentTimeoutId, setCurrentTimeoutId] = useState<number>(0);
   const [saveInProgress, setSaveInProgress] = useRecoilState(saveInProgressState);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const getCleanedLines = (rawLines: string[]) => rawLines.map(line => line.trim()).filter(l => l);
   const cleanedEasyLines = getCleanedLines(easyLines);
@@ -53,8 +68,8 @@ export default function InputStep() {
       setAppStep(AppStep.render);
     } catch (e) {
       console.error("Error saving project immediately", e);
-      setSaveInProgress(true);
     }
+    setSaveInProgress(false);
   }
 
   const onNumLinesSettingChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>, settingFunction: (input: number) => void, settingErrorFunction: (input: string) => void) => {
@@ -127,6 +142,59 @@ export default function InputStep() {
     cleanedMediumLines.length < numMediumLinesSetting ||
     cleanedHardLines.length < numHardLinesSetting;
   const totalSettingsCount = numEasyLinesSetting + numMediumLinesSetting + numHardLinesSetting + (freeSpaceSetting === FreeSpaceSetting.none ? 0 : 1);
+
+  const onDeleteConfirm = async () => {
+    setSaveInProgress(true);
+    try {
+      await deleteProject(loadedProject.id);
+      setAppStep(AppStep.projectList);
+    } catch (e) {
+      console.error("Error deleting project");
+    }
+    setSaveInProgress(false);
+  }
+
+  const DeleteDialog = () => {
+    return (
+      <Dialog
+        maxWidth="xs"
+        aria-labelledby="confirmation-dialog-title"
+        open={deleteDialogOpen}
+      >
+        <DialogTitle
+          id="confirmation-dialog-title"
+          className={styles.deleteDialogTitle}
+        >Delete Project</DialogTitle>
+        <DialogContent dividers>
+          <p style={{marginTop: 0}}>Are you sure you want to delete the following project?</p>
+          <Card>
+            <CardContent>
+              <Typography variant="h5">{projectName}</Typography>
+              <Typography variant="subtitle1">ID: {loadedProject.id}</Typography>
+            </CardContent>
+          </Card>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            autoFocus
+            onClick={() => setDeleteDialogOpen(false)}
+            color="primary"
+            disabled={saveInProgress}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={onDeleteConfirm}
+            variant="contained"
+            color="primary"
+            disabled={saveInProgress}
+          >
+            Ok
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 
   return (
     <Container>
@@ -202,7 +270,12 @@ export default function InputStep() {
         { totalSettingsCount !== 25 && <p style={{color: theme.palette.error.main }}><b>Error</b>: You must provide settings for 25 boxes per sheet.</p> }
         { fewerLinesThanRequired && <p style={{color: theme.palette.warning.main }}><b>Note</b>: There are not enough lines to fulfill these requirements, so the rest will be filled with blanks.</p> }
       </Box>
-      <Box className="actions" marginTop={2} marginBottom={2}>
+      <Box className="actions" marginTop={2} marginBottom={2} display="flex">
+        <Button
+          classes={{ root: errorButtonClasses.root }}
+          style={{ marginLeft: "auto", marginRight: "2em" }}
+          onClick={() => setDeleteDialogOpen(true)}
+        >Delete Project</Button>
         <Button
           variant="contained"
           color="primary"
@@ -213,6 +286,7 @@ export default function InputStep() {
           { saveInProgress ? (<CircularProgress style={{marginLeft: '0.5em'}} size="1em" />): null }
         </Button>
       </Box>
+      <DeleteDialog />
     </Container>
   )
 }

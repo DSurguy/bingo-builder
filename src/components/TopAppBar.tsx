@@ -34,7 +34,7 @@ export default function TopAppBar() {
           backgroundColor: theme.palette.primary.dark
         }}
       >
-        {loadedProject.id}
+        {isSmall ? loadedProject.id.split('-')[0]+"..." : loadedProject.id}
       </Button>
     )
   }

@@ -61,11 +61,9 @@ export default function ProjectList() {
     }
   }
 
-  return (
-    <Container>
-      <Box marginTop={2}>
-        <Button variant="contained" color="primary" onClick={handleNewProjectClick}>Create New Project</Button>
-      </Box>
+  const ProjectListBox = () => {
+    if( !listItemProjects.length ) return null;
+    return (
       <Box marginTop={2}>
         <Typography variant="h4">Projects</Typography>
         <Divider />
@@ -77,6 +75,15 @@ export default function ProjectList() {
           ))}
         </List>
       </Box>
+    )
+  }
+
+  return (
+    <Container>
+      <Box marginTop={2}>
+        <Button variant="contained" color="primary" onClick={handleNewProjectClick}>Create New Project</Button>
+      </Box>
+      <ProjectListBox />
     </Container>
   )
 }

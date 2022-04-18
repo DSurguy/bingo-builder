@@ -148,6 +148,7 @@ export default function InputStep() {
     try {
       await deleteProject(loadedProject.id);
       setAppStep(AppStep.projectList);
+      setLoadedProject(null);
     } catch (e) {
       console.error("Error deleting project");
     }

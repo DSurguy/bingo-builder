@@ -8,6 +8,7 @@ import TopAppBar from './components/TopAppBar';
 import packageJson from '../package.json'
 import ProjectList from './steps/ProjectList'
 import { appStepState } from './store/appState';
+import Breadcrumb from './components/Breadcrumb'
 
 function App() {
   const [step, setStep] = useRecoilState(appStepState);
@@ -56,6 +57,7 @@ function App() {
 
   return (<Fragment>
     <TopAppBar />
+    <Breadcrumb />
     {getStepContent()}
   </Fragment>)
 }

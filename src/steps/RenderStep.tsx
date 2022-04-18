@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, LinearProgress, Container, Backdrop, Paper, Typography, CircularProgress } from '@material-ui/core'
+import { Box, LinearProgress, Container, Backdrop, Paper, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { waitUntil } from '../utils/timeout';
 import { gridStyles } from './styles';
 import { BaseFontSize, SingleBoxSizePx } from '../utils/constants';
-import { LineAndStyle, LineAndStyleByDifficulty, DifficultyKey, Project } from '../types';
+import { LineAndStyle, LineAndStyleByDifficulty, DifficultyKey } from '../types';
 import { loadedProjectState } from '../store/project';
 import { useRecoilValue } from 'recoil';
 

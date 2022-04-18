@@ -1,14 +1,15 @@
 import React from 'react';
-import { AppBar, Button, Divider, Toolbar, Typography, FormControlLabel, Checkbox, CircularProgress } from '@material-ui/core';
-import { appStepState, saveInProgressState, useStorageSettingState } from '../store/appState';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { AppBar, Button, Divider, Toolbar, Typography, CircularProgress } from '@material-ui/core';
+import { useTheme } from '@material-ui/core/styles';
+import { appStepState, saveInProgressState } from '../store/appState';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { AppStep } from '../types';
 import { loadedProjectState } from '../store/project';
 
 export default function TopAppBar() {
-  const [useStorageSettingValue, setUseStorageSetting] = useRecoilState(useStorageSettingState);
+  const theme = useTheme();
   const [appStep, setAppStepState] = useRecoilState(appStepState);
-  const setLoadedProjectState = useSetRecoilState(loadedProjectState);
+  const [loadedProject, setLoadedProjectState] = useRecoilState(loadedProjectState);
   const saveInProgress = useRecoilValue(saveInProgressState);
 
   const onProjectsButtonClicked = () => {
@@ -18,26 +19,38 @@ export default function TopAppBar() {
     }
   }
 
+  const LoadedProjectLink = () => {
+    if( !loadedProject ) return null;
+    return (
+      <Button
+        disabled={saveInProgress}
+        onClick={() => setAppStepState(AppStep.input)}
+        color="inherit"
+        style={{
+          backgroundColor: theme.palette.primary.dark
+        }}
+      >
+        {loadedProject.id}
+      </Button>
+    )
+  }
+
   return (
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6">Bingo Builder</Typography>
         <Divider orientation="vertical" flexItem style={{ marginLeft: '1em', marginRight: '1em' }} />
         { saveInProgress ? <CircularProgress size="1em" color="inherit" /> : null}
-        <Button disabled={saveInProgress} onClick={onProjectsButtonClicked} color="inherit">Projects</Button>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={useStorageSettingValue}
-              onChange={ e => setUseStorageSetting(e.target.checked)}
-              name="useStorageSetting"
-            />
-          }
+        <Button 
+          disabled={saveInProgress} 
+          onClick={onProjectsButtonClicked} 
+          color="inherit"
           style={{
-            marginLeft: 'auto'
+            backgroundColor: appStep === AppStep.projectList ? theme.palette.primary.dark : undefined
           }}
-          label="Use Storage"
-        />
+        >Projects</Button>
+        {loadedProject ? <Typography style={{ marginLeft: '0.5em', marginRight: '0.5em' }}>/</Typography> : null}
+        <LoadedProjectLink />
       </Toolbar>
     </AppBar>
   );

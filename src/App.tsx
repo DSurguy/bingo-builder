@@ -1,26 +1,17 @@
 import React, { Fragment, useEffect, useState } from 'react'
+import { useRecoilState } from 'recoil'
+import { LineAndStyle, LineAndStyleByDifficulty, FreeSpaceSetting, Settings, AppStep } from './types'
 import InputStep from './steps/InputStep'
 import RenderStep from './steps/RenderStep'
 import OutputStep from './steps/OutputStep'
-import './App.css'
-import { LineAndStyle, LineAndStyleByDifficulty, LinesByDifficulty } from './types'
-import { FreeSpaceSetting, InputStepOutput, Settings } from './types'
+import TopAppBar from './components/TopAppBar';
 import packageJson from '../package.json'
-
-enum Step {
-  input,
-  render,
-  output
-}
+import ProjectList from './steps/ProjectList'
+import { appStepState } from './store/appState';
 
 function App() {
-  const [step, setStep] = useState(Step.input);
-  const [linesToRender, setLinesToRender] = useState({
-    easy: [],
-    medium: [],
-    hard: []
-  } as LinesByDifficulty);
-  const [settings, setSettings] = useState({
+  const [step, setStep] = useRecoilState(appStepState);
+  const [settings] = useState({
     freeSpace: FreeSpaceSetting.none,
     easy: 0,
     medium: 0,
@@ -32,30 +23,27 @@ function App() {
     hard: []
   } as LineAndStyleByDifficulty);
 
-  const onInputStepComplete = (output: InputStepOutput) => {
-    setLinesToRender(output.lines);
-    setSettings(output.settings);
-    setStep(Step.render);
-  }
-
   const onRenderStepComplete = (linesAndStyles: {
     easy: LineAndStyle[],
     medium: LineAndStyle[],
     hard: LineAndStyle[]
   }) => {
     setLinesAndStyles(linesAndStyles)
-    setStep(Step.output);
+    setStep(AppStep.output);
   }
 
   const getStepContent = () => {
     switch(step) {
-      case Step.input: {
-        return <InputStep onComplete={onInputStepComplete} />;
+      case AppStep.projectList: {
+        return <ProjectList />
       }
-      case Step.render: {
-        return <RenderStep linesToRender={linesToRender} onComplete={onRenderStepComplete} />
+      case AppStep.input: {
+        return <InputStep />;
       }
-      case Step.output: {
+      case AppStep.render: {
+        return <RenderStep onComplete={onRenderStepComplete} />
+      }
+      case AppStep.output: {
         return <OutputStep linesAndStyles={linesAndStyles} settings={settings} />
       }
       default: return null
@@ -66,7 +54,10 @@ function App() {
     document.title = `Bingo Builder v${packageJson.version}`;
   }, [])
 
-  return getStepContent();
+  return (<Fragment>
+    <TopAppBar />
+    {getStepContent()}
+  </Fragment>)
 }
 
 export default App

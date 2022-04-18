@@ -1,7 +1,15 @@
-import { defineConfig } from 'vite'
-import reactRefresh from '@vitejs/plugin-react-refresh'
+import { defineConfig, UserConfigExport } from 'vite'
+import reactPlugin from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [reactRefresh()]
+export default defineConfig(({command, mode }) => {
+  let config: UserConfigExport = {
+    plugins: [reactPlugin()],
+    build: {}
+  }
+  if( command === 'serve' || mode === 'development' ) {
+    config.build.sourcemap = true;
+  }
+
+  return config;
 })

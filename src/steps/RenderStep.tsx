@@ -1,24 +1,28 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, LinearProgress, Container, Backdrop, Paper } from '@material-ui/core'
+import { Box, LinearProgress, Container, Backdrop, Paper, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { waitUntil } from '../utils/timeout';
 import { gridStyles } from './styles';
 import { BaseFontSize, SingleBoxSizePx } from '../utils/constants';
-import { LinesByDifficulty, LineAndStyle, LineAndStyleByDifficulty, DifficultyKey } from '../types';
+import { LineAndStyle, LineAndStyleByDifficulty, DifficultyKey } from '../types';
+import { loadedProjectState } from '../store/project';
+import { useRecoilValue } from 'recoil';
 
-type Props = {
-  linesToRender: LinesByDifficulty,
-  onComplete: (linesAndStyles: LineAndStyleByDifficulty) => void;
-}
-
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   percent: {
     fontSize: '2rem',
     textAlign: 'center'
+  },
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1
   }
-})
+}))
 
-export default function RenderStep({ linesToRender, onComplete }: Props) {
+type Props = {
+  onComplete: (linesAndStyles: LineAndStyleByDifficulty) => void;
+}
+
+export default function RenderStep({ onComplete }: Props) {
   const gridClasses = gridStyles();
   const [lineFontSizes, setLineFontSizes] = useState({
     easy: [] as number[],
@@ -34,18 +38,29 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
   const renderedTextSpan = useRef<HTMLSpanElement>(null);
   const styles = useStyles();
   const [openBackdrop, setOpenBackdrop] = useState(true);
-  const incrementalProgress = 100 / (linesToRender.easy.length + linesToRender.medium.length + linesToRender.hard.length);
+  const loadedProject = useRecoilValue(loadedProjectState);
+  if( !loadedProject ) {
+    return (
+      <Container>
+        <Typography color="error" variant="h2">Error</Typography>
+        <p>
+          No project was loaded.
+        </p>
+      </Container>
+    )
+  }
+  const incrementalProgress = 100 / (loadedProject.lines.easy.length + loadedProject.lines.medium.length + loadedProject.lines.hard.length);
 
   useEffect(() => {
     (async () => {
-      await waitUntil(() => renderedTextSpan.current!.innerText.trim() === linesToRender[renderState.currentDifficulty][renderState.currentLine]);
+      await waitUntil(() => renderedTextSpan.current!.innerText.trim() === loadedProject.lines[renderState.currentDifficulty][renderState.currentLine]);
       if ((renderedTextSpan.current!.offsetHeight > SingleBoxSizePx.h * .95 || renderedTextSpan.current!.offsetWidth > SingleBoxSizePx.w * .95) && renderState.currentLineFontSize > 6) {
         updateRenderState({
           ...renderState,
           currentLineFontSize: renderState.currentLineFontSize - 1
         })
       }
-      else if (renderState.currentLine === linesToRender[renderState.currentDifficulty].length - 1) {
+      else if (renderState.currentLine === loadedProject.lines[renderState.currentDifficulty].length - 1) {
         if( renderState.currentDifficulty !== "hard" ) {
           setLineFontSizes({
             ...lineFontSizes,
@@ -72,10 +87,11 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
           setTimeout(() => {
             setOpenBackdrop(false);
             setTimeout(() => {
+              // TODO: Go to complete step
               onComplete({
-                easy: toLineAndStyles(linesToRender.easy, 'easy'),
-                medium: toLineAndStyles(linesToRender.medium, 'medium'),
-                hard: toLineAndStyles(linesToRender.hard, 'hard')
+                easy: toLineAndStyles(loadedProject.lines.easy, 'easy'),
+                medium: toLineAndStyles(loadedProject.lines.medium, 'medium'),
+                hard: toLineAndStyles(loadedProject.lines.hard, 'hard')
               })
             }, 200);
           }, 500)
@@ -103,11 +119,11 @@ export default function RenderStep({ linesToRender, onComplete }: Props) {
           <span style={{
             fontSize: `${renderState.currentLineFontSize}px`
           }} ref={renderedTextSpan}>
-            {linesToRender[renderState.currentDifficulty][renderState.currentLine]}
+            {loadedProject.lines[renderState.currentDifficulty][renderState.currentLine]}
           </span>
         </Box>
       </Box>}
-      <Backdrop open={openBackdrop}>
+      <Backdrop open={openBackdrop} className={styles.backdrop}>
         <Paper elevation={1}>
           <Box margin={2}>
             <h2>Rendering</h2>

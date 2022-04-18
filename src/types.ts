@@ -4,6 +4,13 @@ export enum FreeSpaceSetting {
   random = "random"
 }
 
+export enum AppStep {
+  projectList,
+  input,
+  render,
+  output
+}
+
 export type DifficultyKey = 'easy' | 'medium' | 'hard';
 
 export type LinesByDifficulty = {
@@ -31,6 +38,29 @@ export type Settings = {
 }
 
 export type InputStepOutput = {
-  lines: LinesByDifficulty,
-  settings: Settings
+  lines: LinesByDifficulty;
+  settings: Settings;
+};
+
+export type NewProject = {
+  id?: string;
+  name: string;
+  lines: LinesByDifficulty;
+  settings: Settings;
+}
+
+export type Project = {
+  id: string;
+  name: string;
+  lines: LinesByDifficulty;
+  settings: Settings;
+};
+
+export type ListItemProject = {
+  id: string;
+  name: string;
+}
+
+export type AppStore = {
+  projects: Project;
 }

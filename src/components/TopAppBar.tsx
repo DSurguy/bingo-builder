@@ -6,6 +6,7 @@ import { saveInProgressState } from '../store/appState';
 import { useRecoilValue } from 'recoil';
 import News from './News';
 import AuthMenu, { MenuAction } from './AuthMenu';
+import { testAuth } from '../store/auth';
 
 export default function TopAppBar() {
   const theme = useTheme();
@@ -35,6 +36,7 @@ export default function TopAppBar() {
 
   const onMenuAction = (action: MenuAction) => {
     if( action === MenuAction.showNews ) setShowNews(true);
+    if( action === MenuAction.signIn ) testAuth();
   }
 
   return (

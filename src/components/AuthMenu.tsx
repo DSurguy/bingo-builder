@@ -8,14 +8,15 @@ type Props = {
 }
 
 export enum MenuAction {
-  showNews
+  showNews,
+  signIn
 }
 
 export default function AuthMenu({ anchor, onAction, onClose }: Props) {
   if( !anchor ) return null;
   return (
     <Menu anchorEl={anchor} open onClose={onClose}>
-      <MenuItem onClick={onClose}>Sign In / Sign Up</MenuItem>
+      <MenuItem onClick={() => { onAction(MenuAction.signIn); onClose(); }}>Sign In / Sign Up</MenuItem>
       <MenuItem onClick={() => { onAction(MenuAction.showNews); onClose(); }}>What's New</MenuItem>
     </Menu>
   )

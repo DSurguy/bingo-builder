@@ -1,31 +1,50 @@
-import React, { useState } from 'react';
-import { AppBar, Button, Divider, Toolbar, Typography, CircularProgress, useMediaQuery, IconButton } from '@material-ui/core';
-import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import React, { useState, useRef } from 'react';
+import { AppBar, Avatar, Button, Divider, Toolbar, Menu, MenuItem, Typography, CircularProgress, useMediaQuery, IconButton } from '@material-ui/core';
+//import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import { useTheme } from '@material-ui/core/styles';
 import { saveInProgressState } from '../store/appState';
 import { useRecoilValue } from 'recoil';
 import News from './News';
+import AuthMenu, { MenuAction } from './AuthMenu';
 
 export default function TopAppBar() {
   const theme = useTheme();
   const saveInProgress = useRecoilValue(saveInProgressState);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null);
   const [showNews, setShowNews] = useState(false);
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const NewsButton = () => {
-    if( isSmall )
-      return <IconButton color="inherit" style={{marginLeft: "auto" }} onClick={() => setShowNews(true)}><HelpOutlineIcon /></IconButton>
-    else
-      return <Button color="inherit" style={{marginLeft: "auto" }} onClick={() => setShowNews(true)}>What's new <HelpOutlineIcon style={{marginLeft: '0.5em' }}/></Button>
+  const AuthMenuButton = (
+    <Button
+      className="auth-menu-button" 
+      color="inherit" 
+      style={{ marginLeft: "auto" }} 
+      onClick={(e) => {
+        setMenuAnchor(e.currentTarget);
+      }}
+    >
+      <Avatar
+        style={{
+          width: theme.spacing(4),
+          height: theme.spacing(4),
+        }}
+      >A</Avatar>
+      { isSmall ? null : <Typography style={{ marginLeft: theme.spacing(1) }}>Your Name</Typography> }
+    </Button>
+  )
+
+  const onMenuAction = (action: MenuAction) => {
+    if( action === MenuAction.showNews ) setShowNews(true);
   }
 
   return (
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6">Bingo Builder</Typography>
-        <Divider orientation="vertical" flexItem style={{ marginLeft: '1em', marginRight: '1em' }} />
+        <Divider orientation="vertical" flexItem style={{ marginLeft: theme.spacing(2), marginRight: theme.spacing(2) }} />
         { saveInProgress ? <CircularProgress size="1em" color="inherit" /> : null}
-        <NewsButton />
+        { AuthMenuButton }
+        <AuthMenu anchor={menuAnchor} onAction={onMenuAction} onClose={() => setMenuAnchor(null)} />
         <News open={showNews} onClose={() => setShowNews(false)} />
       </Toolbar>
     </AppBar>

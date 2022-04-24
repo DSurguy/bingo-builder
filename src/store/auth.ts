@@ -32,3 +32,12 @@ export const authenticatedUserState = atom<UserInfo | null>({
     })
   })
 })
+
+export const manuallySignOutAndReload = () => {
+  indexedDB.databases().then(databases => {
+    for( let db of databases ) {
+      if( db.name?.toLowerCase().includes("firebase") ) indexedDB.deleteDatabase(db.name);
+    }
+    window.location.reload();
+  })
+}

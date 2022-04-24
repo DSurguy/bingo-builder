@@ -24,14 +24,6 @@ export default function AuthDialog({ open, onClose }: Props) {
   const [error, setError] = useState("");
   const setAuthenticatedUser = useSetRecoilState(authenticatedUserState);
   const [inProgress, setInProgress] = useState(false);
-  //TODO: Show the evil cookie banner. I have no choice.
-  // - basically just DON'T load anything if MY cookie "allow_cookies" doesn't exist
-  //TODO: Show data policy
-  //TODO: Store form data in state
-  //TODO: Validate form data on submit (isEmail, not empty, terms agreed)
-  //TODO: Send create request to server
-  //TODO: Handle errors
-  //TODO: Handle success
 
   // const onFormSubmit = (e: FormEvent) => {
   //   e.stopPropagation();

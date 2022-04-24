@@ -9,10 +9,10 @@ const appTheme = createTheme({
       contrastText: '#fff'
     },
     secondary: {
-      light: '#6effff',
-      main: '#00e5ff',
-      dark: '#00b2cc',
-      contrastText: '#000000'
+      light: '#39796b',
+      main: '#004d40',
+      dark: '#00251a',
+      contrastText: '#fff'
     }
   }
 })

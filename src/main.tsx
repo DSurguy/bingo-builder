@@ -6,6 +6,9 @@ import './index.css'
 import App from './App'
 import './App.css'
 import appTheme from './appTheme';
+import gCaptchaPolyfill from './gCaptchaPolyfill';
+
+gCaptchaPolyfill();
 
 ReactDOM.render(
   <React.StrictMode>

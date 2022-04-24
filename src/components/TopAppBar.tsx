@@ -2,18 +2,22 @@ import React, { useState, useRef } from 'react';
 import { AppBar, Avatar, Button, Divider, Toolbar, Menu, MenuItem, Typography, CircularProgress, useMediaQuery, IconButton } from '@material-ui/core';
 //import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import { useTheme } from '@material-ui/core/styles';
-import { saveInProgressState } from '../store/appState';
+import { cookieConsentState, saveInProgressState } from '../store/appState';
 import { useRecoilValue } from 'recoil';
 import News from './News';
 import AuthMenu, { MenuAction } from './AuthMenu';
-import { testAuth } from '../store/auth';
+import CookieDialog from './CookieDialog';
+import AuthDialog from './AuthDialog';
 
 export default function TopAppBar() {
   const theme = useTheme();
+  const cookieConsent = useRecoilValue(cookieConsentState);
   const saveInProgress = useRecoilValue(saveInProgressState);
   const [menuAnchor, setMenuAnchor] = useState<HTMLButtonElement | null>(null);
   const [showNews, setShowNews] = useState(false);
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const [showCookieDialog, setShowCookieDialog] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const AuthMenuButton = (
     <Button
@@ -36,7 +40,15 @@ export default function TopAppBar() {
 
   const onMenuAction = (action: MenuAction) => {
     if( action === MenuAction.showNews ) setShowNews(true);
-    if( action === MenuAction.signIn ) testAuth();
+    if( action === MenuAction.signIn ) {
+      if( cookieConsent ) setShowAuthDialog(true);
+      else setShowCookieDialog(true);
+    }
+  }
+
+  const onConsent = () => {
+    setShowAuthDialog(true);
+    setShowCookieDialog(false);
   }
 
   return (
@@ -48,6 +60,8 @@ export default function TopAppBar() {
         { AuthMenuButton }
         <AuthMenu anchor={menuAnchor} onAction={onMenuAction} onClose={() => setMenuAnchor(null)} />
         <News open={showNews} onClose={() => setShowNews(false)} />
+        <CookieDialog open={showCookieDialog} onConsent={onConsent} onCancel={() => setShowCookieDialog(false) }/>
+        <AuthDialog open={showAuthDialog} onClose={() => setShowAuthDialog(false) } />
       </Toolbar>
     </AppBar>
   );

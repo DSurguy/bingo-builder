@@ -15,7 +15,7 @@ export default defineConfig(({command, mode }) => {
             tags.push({
               tag: 'script',
               attrs: {
-                'src': `https://www.google.com/recaptcha/api.js?render=${env['VITE_GOOGLE_RECAPTCHA_KEY']}`
+                'src': `https://www.recaptcha.net/recaptcha/api.js?render=${env['VITE_GOOGLE_RECAPTCHA_KEY']}`
               }
             })
           return tags;

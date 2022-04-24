@@ -1,6 +1,12 @@
-import React, { FormEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '@material-ui/core/styles';
-import { Button, Box, Tabs, Tab, Dialog, DialogActions, DialogTitle, DialogContent, Typography, IconButton, TextField, FormControlLabel, useMediaQuery, Checkbox } from '@material-ui/core';
+import { Button, Box, Tabs, Tab, CircularProgress, Dialog, DialogActions, DialogContent, TextField, FormControlLabel, useMediaQuery, Checkbox } from '@material-ui/core';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import firebaseAppPromise from '../store/firebaseApp';
+import { useSetRecoilState } from 'recoil';
+import { authenticatedUserState } from '../store/auth';
+import { getUserInfoFromUser } from '../utils/firebase';
+
 type Props = {
   open: boolean;
   onClose: () => any;
@@ -13,7 +19,11 @@ export default function AuthDialog({ open, onClose }: Props) {
   const [selectedTab, setSelectedTab] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [consent, setConsent] = useState(false);
+  const [error, setError] = useState("");
+  const setAuthenticatedUser = useSetRecoilState(authenticatedUserState);
+  const [inProgress, setInProgress] = useState(false);
   //TODO: Show the evil cookie banner. I have no choice.
   // - basically just DON'T load anything if MY cookie "allow_cookies" doesn't exist
   //TODO: Show data policy
@@ -42,23 +52,93 @@ export default function AuthDialog({ open, onClose }: Props) {
     setIsExited(false);
   }, [open])
 
-  const onSubmitClick = () => processSignIn();
+  if( isExited ) return null;
+
+  const onSubmitClick = () => processForm();
 
   const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    processSignIn();
+    processForm();
   }
 
-  const processSignIn = () => {
-    console.log(email, password, consent);
+  const processForm = async () => {
+    if( inProgress ) return;
+    setInProgress(true);
+    let firebaseApp;
+    try {
+      firebaseApp = await firebaseAppPromise;
+    } catch (e: any) {
+      setError(e.message);
+      return;
+    }
+    if( selectedTab === 0 ){
+      try {
+        const userCredentials = await signInWithEmailAndPassword(getAuth(firebaseApp), email, password);
+        setAuthenticatedUser(getUserInfoFromUser(userCredentials.user));
+        onClose();
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setInProgress(false);
+      }
+    } else {}
   }
 
   const onExited = () => {
     setIsExited(true);
   }
 
-  if( isExited ) return null;
+  const consentCheckbox = (
+    <FormControlLabel
+      control={
+        <Checkbox
+          value={consent}
+          onChange={e => setConsent(e.target.checked)}
+        ></Checkbox>
+      }
+      label="I agree to terms and such"
+    />
+  )
+
+  const emailField = (
+    <TextField
+      style={{margin: theme.spacing(1) }}
+      fullWidth
+      type="text"
+      label="Email"
+      required
+      variant="outlined"
+      value={email}
+      onChange={e => setEmail(e.target.value)}
+    />
+  )
+
+  const passwordField = (
+    <TextField
+      style={{margin: theme.spacing(1) }}
+      fullWidth
+      type="password"
+      label="Password"
+      required
+      variant="outlined"
+      value={password}
+      onChange={e => setPassword(e.target.value)}
+    />
+  )
+
+  const passwordConfirmField = (
+    <TextField
+      style={{margin: theme.spacing(1) }}
+      fullWidth
+      type="password"
+      label="Confirm Password"
+      required
+      variant="outlined"
+      value={passwordConfirm}
+      onChange={e => setPasswordConfirm(e.target.value)}
+    />
+  )
 
   return (
     <Dialog fullScreen={fullScreen} open={open} onClose={onClose} TransitionProps={{
@@ -85,40 +165,17 @@ export default function AuthDialog({ open, onClose }: Props) {
             paddingTop: theme.spacing(1),
             paddingBottom: theme.spacing(1),
           }}>
-            <TextField
-              style={{margin: theme.spacing(1) }}
-              fullWidth
-              type="text"
-              label="Email"
-              required
-              variant="outlined"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-            <TextField
-              style={{margin: theme.spacing(1) }}
-              fullWidth
-              type="text"
-              label="Password"
-              required
-              variant="outlined"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  value={consent}
-                  onChange={e => setConsent(e.target.checked)}
-                ></Checkbox>
-              }
-              label="I agree to terms and such"
-            />
+            { emailField }
+            { passwordField }
+            { selectedTab === 1 ? passwordConfirmField : null }
+            { selectedTab === 1 ? consentCheckbox : null }
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" onClick={onSubmitClick} variant="contained" color="primary" >Sign In</Button>
+          <Button type="submit" variant="contained" color="primary">
+            { inProgress ? <CircularProgress size="1em" /> : "Sign In" }
+          </Button>
         </DialogActions>
       </form>
     </Dialog>

@@ -11,12 +11,10 @@ import gCaptchaPolyfill from './gCaptchaPolyfill';
 gCaptchaPolyfill();
 
 ReactDOM.render(
-  <React.StrictMode>
-    <RecoilRoot>
-      <ThemeProvider theme={appTheme}>
-        <App />
-      </ThemeProvider>
-    </RecoilRoot>
-  </React.StrictMode>,
+  <RecoilRoot>
+    <ThemeProvider theme={appTheme}>
+      <App />
+    </ThemeProvider>
+  </RecoilRoot>,
   document.getElementById('root')
 )

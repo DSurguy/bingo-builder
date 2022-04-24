@@ -1,5 +1,8 @@
 import appPromise from './firebaseApp';
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, UserInfo } from "firebase/auth";
+import { atom } from 'recoil';
+import firebaseAppPromise from '../store/firebaseApp';
+import { getUserInfoFromUser } from '../utils/firebase';
 
 export function testAuth() {
   appPromise.then(app => {
@@ -13,3 +16,19 @@ export function testAuth() {
       .catch(e => console.error("Error signing in", e));
   });
 }
+
+export const authenticatedUserState = atom<UserInfo | null>({
+  key: 'authenticatedUser',
+  default: new Promise((resolve, reject) => {
+    let removeObserver = () => {};
+    firebaseAppPromise.then(app => {
+      removeObserver = onAuthStateChanged(getAuth(app), user => {
+        resolve(user ? getUserInfoFromUser(user) : null);
+      })
+    }).catch((e) => {
+      reject(e)
+    }).finally(() => {
+      removeObserver();
+    })
+  })
+})

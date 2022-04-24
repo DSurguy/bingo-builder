@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState } from 'react'
-import { useRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValueLoadable } from 'recoil'
 import { LineAndStyle, LineAndStyleByDifficulty, FreeSpaceSetting, Settings, AppStep } from './types'
 import InputStep from './steps/InputStep'
 import RenderStep from './steps/RenderStep'
@@ -9,8 +9,12 @@ import packageJson from '../package.json'
 import ProjectList from './steps/ProjectList'
 import { appStepState } from './store/appState';
 import Breadcrumb from './components/Breadcrumb'
+import { authenticatedUserState } from './store/auth'
+
+let cachedUser: any;
 
 function App() {
+  const user = useRecoilValueLoadable(authenticatedUserState);
   const [step, setStep] = useRecoilState(appStepState);
   const [settings] = useState({
     freeSpace: FreeSpaceSetting.none,
@@ -54,6 +58,14 @@ function App() {
   useEffect(() => {
     document.title = `Bingo Builder v${packageJson.version}`;
   }, [])
+
+  useEffect(() => {
+    console.log(cachedUser === user);
+    if( user.state === "hasValue" ){
+      console.log("User", user.contents);
+    }
+    cachedUser = user;
+  }, [user])
 
   return (<Fragment>
     <TopAppBar />

@@ -9,7 +9,7 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const appPromise = new Promise<FirebaseApp>((resolve, reject) => {
+const firebaseAppPromise = new Promise<FirebaseApp>((resolve, reject) => {
   try {
     const app = initializeApp(firebaseConfig);
     resolve(app);
@@ -19,4 +19,4 @@ const appPromise = new Promise<FirebaseApp>((resolve, reject) => {
   }
 });
 
-export default appPromise;
+export default firebaseAppPromise;

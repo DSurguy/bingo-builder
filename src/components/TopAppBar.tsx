@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
+import axios from 'axios';
 import { AppBar, Avatar, Button, Divider, Toolbar, Menu, MenuItem, Typography, CircularProgress, useMediaQuery, IconButton } from '@material-ui/core';
 import { getAuth, signOut } from 'firebase/auth';
 import { useTheme } from '@material-ui/core/styles';
 import { cookieConsentState, saveInProgressState } from '../store/appState';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilValue, useRecoilValueLoadable, useSetRecoilState } from 'recoil';
 import News from './News';
 import AuthMenu, { MenuAction } from './AuthMenu';
 import CookieDialog from './CookieDialog';
@@ -21,6 +22,7 @@ export default function TopAppBar() {
   const [showCookieDialog, setShowCookieDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const setAuthenticatedUser = useSetRecoilState(authenticatedUserState);
+  const user = useRecoilValueLoadable(authenticatedUserState);
 
   const onMenuAction = (action: MenuAction) => {
     if( action === MenuAction.showNews ) setShowNews(true);
@@ -31,6 +33,7 @@ export default function TopAppBar() {
     if( action === MenuAction.signOut ) {
       signOutAction();
     }
+    if( action === MenuAction.testAuthHealth ) testAuthHealthAction();
   }
 
   const signOutAction = async () => {
@@ -40,6 +43,21 @@ export default function TopAppBar() {
       setAuthenticatedUser(null);
     } catch (e: any) {
       manuallySignOutAndReload();
+    }
+  }
+
+  const testAuthHealthAction = async () => {
+    try {
+      const firebaseApp = await firebaseAppPromise;
+      const idToken = await getAuth(firebaseApp).currentUser?.getIdToken();
+      const { data } = await axios.get(`${import.meta.env.VITE_BINGO_SERVER_HOST}/auth/health`, {
+        headers: {
+          Authorization: `Bearer ${idToken}`
+        }
+      });
+      console.log(data === "OK");
+    } catch (e) {
+      console.error(e);
     }
   }
 

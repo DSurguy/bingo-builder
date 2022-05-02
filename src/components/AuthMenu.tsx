@@ -13,7 +13,8 @@ type Props = {
 export enum MenuAction {
   showNews,
   signIn,
-  signOut
+  signOut,
+  testAuthHealth
 }
 
 export default function AuthMenu({ onAction }: Props) {
@@ -54,6 +55,7 @@ export default function AuthMenu({ onAction }: Props) {
       { user.contents ? null : signInMenuItem }
       <MenuItem onClick={() => { triggerActionAndClose(MenuAction.showNews); }}>What's New</MenuItem>
       { user.contents ? signOutMenuItem : null }
+      { user.contents ? <MenuItem onClick={() => triggerActionAndClose(MenuAction.testAuthHealth)}>Check Auth Health</MenuItem> : null}
     </Menu>
   ) : null;
 

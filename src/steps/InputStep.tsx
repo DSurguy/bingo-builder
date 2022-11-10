@@ -1,24 +1,11 @@
 import React, { MouseEvent, useEffect, useState, useRef } from 'react'
-import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent } from '@material-ui/core'
-import { useTheme, makeStyles } from '@material-ui/core/styles';
+import { Button, Box, Container, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, TextField, Typography, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent } from '@mui/material'
+import { useTheme } from '@mui/material/styles';
 import { AppStep, FreeSpaceSetting, Project } from '../types';
 import BingoInput from '../components/BingoInput';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { deleteProject, getProject, loadedProjectState, saveProject as apiSaveProject } from '../store/project';
 import { appStepState, saveInProgressState } from '../store/appState';
-
-const useErrorButtonStyles = makeStyles(theme => ({
-  root: {
-    color: theme.palette.error.main
-  }
-}))
-
-const useStyles = makeStyles(theme => ({
-  deleteDialogTitle: {
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  }
-}))
 
 export default function InputStep() {
   const isMount = useRef(true);
@@ -36,8 +23,6 @@ export default function InputStep() {
 
   const setAppStep = useSetRecoilState(appStepState);
   const theme = useTheme();
-  const errorButtonClasses = useErrorButtonStyles();
-  const styles = useStyles();
   const [projectName, setProjectName] = useState(loadedProject.name)
   const [easyLines, setEasyLines] = useState(loadedProject.lines.easy)
   const [mediumLines, setMediumLines] = useState(loadedProject.lines.medium)
@@ -164,7 +149,10 @@ export default function InputStep() {
       >
         <DialogTitle
           id="confirmation-dialog-title"
-          className={styles.deleteDialogTitle}
+          sx={{
+            backgroundColor: theme.palette.error.main,
+            color: theme.palette.error.contrastText
+          }}
         >Delete Project</DialogTitle>
         <DialogContent dividers>
           <p style={{marginTop: 0}}>Are you sure you want to delete the following project?</p>
@@ -273,8 +261,11 @@ export default function InputStep() {
       </Box>
       <Box className="actions" marginTop={2} marginBottom={2} display="flex">
         <Button
-          classes={{ root: errorButtonClasses.root }}
-          style={{ marginLeft: "auto", marginRight: "2em" }}
+          sx={{
+            color: theme.palette.error.main,
+            marginLeft: "auto",
+            marginRight: "2em"
+          }}
           onClick={() => setDeleteDialogOpen(true)}
         >Delete Project</Button>
         <Button
@@ -284,7 +275,7 @@ export default function InputStep() {
           disabled={totalSettingsCount !== 25 || saveInProgress}
         >
           Next
-          { saveInProgress ? (<CircularProgress style={{marginLeft: '0.5em'}} size="1em" />): null }
+          { saveInProgress ? (<CircularProgress sx={{marginLeft: '0.5em'}} size="1em" />): null }
         </Button>
       </Box>
       <DeleteDialog />

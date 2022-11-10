@@ -1,4 +1,5 @@
-import { createTheme } from "@material-ui/core/styles";
+import { createTheme } from "@mui/material";
+import { Theme } from '@mui/material/styles';
 
 const appTheme = createTheme({
   palette: {

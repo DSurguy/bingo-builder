@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
-import { Box, Button, Typography, useMediaQuery } from '@material-ui/core';
-import { useTheme } from '@material-ui/core/styles';
+import { Box, Button, Typography, useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { loadedProjectState } from '../store/project';
 import { appStepState, saveInProgressState } from '../store/appState';
@@ -38,14 +38,14 @@ export default function Breadcrumb() {
     const idContent = isExtraSmall ? truncatedId : loadedProject.id;
     return (
       <Fragment>
-        <Typography style={{ marginRight: '0.5em', marginLeft: '0.5em', alignSelf: 'center' }}>/</Typography>
+        <Typography sx={{ marginRight: '0.5em', marginLeft: '0.5em', alignSelf: 'center' }}>/</Typography>
         <Button size="small" color="primary" onClick={onLoadedProjectClick} >{idContent}</Button>
       </Fragment>
     )
   }
 
   return loadedProject ? (
-    <Box display="flex" style={{ margin: "0.5em" }}>
+    <Box display="flex" sx={{ margin: "0.5em" }}>
       <ProjectsLink />
       <LoadedProjectLink />
     </Box>

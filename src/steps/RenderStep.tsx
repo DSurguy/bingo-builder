@@ -1,29 +1,18 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, LinearProgress, Container, Backdrop, Paper, Typography } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Box, LinearProgress, Container, Backdrop, Paper, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { waitUntil } from '../utils/timeout';
-import { gridStyles } from './styles';
 import { BaseFontSize, SingleBoxSizePx } from '../utils/constants';
 import { LineAndStyle, LineAndStyleByDifficulty, DifficultyKey } from '../types';
 import { loadedProjectState } from '../store/project';
 import { useRecoilValue } from 'recoil';
-
-const useStyles = makeStyles(theme => ({
-  percent: {
-    fontSize: '2rem',
-    textAlign: 'center'
-  },
-  backdrop: {
-    zIndex: theme.zIndex.drawer + 1
-  }
-}))
 
 type Props = {
   onComplete: (linesAndStyles: LineAndStyleByDifficulty) => void;
 }
 
 export default function RenderStep({ onComplete }: Props) {
-  const gridClasses = gridStyles();
+  const theme = useTheme();
   const [lineFontSizes, setLineFontSizes] = useState({
     easy: [] as number[],
     medium: [] as number[],
@@ -36,7 +25,6 @@ export default function RenderStep({ onComplete }: Props) {
     currentLineFontSize: BaseFontSize
   });
   const renderedTextSpan = useRef<HTMLSpanElement>(null);
-  const styles = useStyles();
   const [openBackdrop, setOpenBackdrop] = useState(true);
   const loadedProject = useRecoilValue(loadedProjectState);
   if( !loadedProject ) {
@@ -115,7 +103,14 @@ export default function RenderStep({ onComplete }: Props) {
   return (
     <Container>
       {progress < 100 && <Box className="renderSandbox">
-        <Box className={`${gridClasses.gridItem}`}>
+        <Box sx={{
+          border: '1px solid #444',
+          boxSizing: 'border-box',
+          width: `${SingleBoxSizePx.w}px`,
+          height: `${SingleBoxSizePx.h}px`,
+          textAlign: 'center',
+          lineHeight: 1
+        }}>
           <span style={{
             fontSize: `${renderState.currentLineFontSize}px`
           }} ref={renderedTextSpan}>
@@ -123,14 +118,19 @@ export default function RenderStep({ onComplete }: Props) {
           </span>
         </Box>
       </Box>}
-      <Backdrop open={openBackdrop} className={styles.backdrop}>
+      <Backdrop open={openBackdrop} sx={{
+        zIndex: theme.zIndex.drawer + 1
+      }}>
         <Paper elevation={1}>
           <Box margin={2}>
             <h2>Rendering</h2>
             <p>
               We're calculating an appropriate font size for each of your bingo lines, please wait a moment!
             </p>
-            <p className={styles.percent}>
+            <p style={{
+              fontSize: '2rem',
+              textAlign: 'center'
+            }}>
               {progress.toFixed(2)}%
             </p>
             <Box className="progress">

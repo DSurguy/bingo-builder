@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Container, Divider, List, ListItem, ListItemText, Typography } from '@material-ui/core';
+import { Box, Button, Container, Divider, List, ListItem, ListItemText, Typography } from '@mui/material';
 import { Project, NewProject, FreeSpaceSetting, AppStep, ListItemProject } from '../types';
 import { getSeedLines } from '../lipsumSeed';
 import { getProject, listProjects, loadedProjectState, saveProject } from '../store/project';

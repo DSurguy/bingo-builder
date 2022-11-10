@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, TextField } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles'
+import { Box, TextField } from '@mui/material';
 
 type Props = {
   onChange: (lines: string[]) => void,
@@ -8,20 +7,11 @@ type Props = {
   label: string
 }
 
-const useTextFieldStyles = makeStyles({
-  input: {
-    whiteSpace: 'pre',
-    wordWrap: 'normal',
-    overflowX: 'auto'
-  }
-})
-
 export default function BingoInput({
   onChange,
   lines,
   label
 }: Props) {
-  const textFieldStyles = useTextFieldStyles();
 
   const getNumLines = () => lines.map(line => line.trim()).length
   const getNumLinesTrimmed = () => lines.map(line => line.trim()).filter(l => l).length
@@ -41,7 +31,11 @@ export default function BingoInput({
         fullWidth
         InputProps={{
           fullWidth: true,
-          classes: textFieldStyles
+          sx: {
+            whiteSpace: 'pre',
+            wordWrap: 'normal',
+            overflowX: 'auto'
+          }
         }}
         variant="outlined"
       ></TextField>

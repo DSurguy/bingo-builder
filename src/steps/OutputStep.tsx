@@ -1,7 +1,6 @@
 import React, { Fragment, FormEvent, useState, useEffect } from 'react';
-import { Box, TextField, Button, Container, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import { gridStyles } from './styles';
+import { Box, TextField, Button, Container, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import jsPDF from 'jspdf';
 import { LineAndStyle, LineAndStyleByDifficulty, FreeSpaceSetting, Settings } from '../types';
 import { PaperSizeMillis, SingleBoxSizeMilli } from '../utils/constants';
@@ -9,29 +8,19 @@ import { pxFontToPt } from '../utils/conversions';
 import { getRandomIntInclusive } from '../utils/random';
 import { useRecoilValue } from 'recoil';
 import { loadedProjectState } from '../store/project';
+import { SingleBoxSizePx } from "../utils/constants"
 
 type Props = {
   linesAndStyles: LineAndStyleByDifficulty,
   settings: Settings;
 }
 
-const useButtonGroupStyles = makeStyles((theme) => ({
-  root: {
-    marginTop: theme.spacing(1),
-    '& > *': {
-      margin: theme.spacing(1),
-      marginLeft: 0
-    },
-  },
-}));
-
 export default function OutputStep({ linesAndStyles }: Props) {
+  const theme = useTheme();
   const [numGrids, setNumGrids] = useState('4');
   const [numGridsError, setNumGridsError] = useState("");
   const [grids, setGrids] = useState([] as LineAndStyle[][][])
-  const gridClasses = gridStyles();
   const [gridScale, setGridScale] = useState(1);
-  const buttonGroupStyles = useButtonGroupStyles();
   const loadedProject = useRecoilValue(loadedProjectState);
 
   if( !loadedProject ) {
@@ -183,17 +172,25 @@ export default function OutputStep({ linesAndStyles }: Props) {
         <Box>
           <h2>Sample Output</h2>
         </Box>
-        <Box marginBottom={2} className={gridClasses.gridContainer}>
-          <div className={gridClasses.grid} style={{
+        <Box marginBottom={2} sx={{
+          width: '85%'
+        }}>
+          <Box sx={{
+            width: `${SingleBoxSizePx.w * 5}px`,
+            height: `${SingleBoxSizePx.h * 5}px`,
             transform: `scale(${gridScale.toFixed(2)})`,
             transformOrigin: 'top left'
           }}>
             {grids[0].map((row, rowIndex) => {
-              return (<Box className={gridClasses.gridRow} key={rowIndex}>
+              return (<Box sx={{ display: 'flex' }} key={rowIndex}>
                 {row.map((lineAndStyle, lineIndex) => {
                   return <Box 
-                    className={`${gridClasses.gridItem}`}
-                    style={{
+                    sx={{
+                      border: '1px solid #444',
+                      boxSizing: 'border-box',
+                      width: `${SingleBoxSizePx.w}px`,
+                      height: `${SingleBoxSizePx.h}px`,
+                      textAlign: 'center',
                       fontSize: `${lineAndStyle.fontSize}px`,
                       lineHeight: 1.2
                     }}
@@ -202,7 +199,7 @@ export default function OutputStep({ linesAndStyles }: Props) {
                 })}
               </Box>)
             })}
-          </div>
+          </Box>
         </Box>
       </Fragment>
     )
@@ -232,7 +229,13 @@ export default function OutputStep({ linesAndStyles }: Props) {
                 type="number"
               />
             </Box>
-            <Box className={buttonGroupStyles.root}>
+            <Box sx={{
+              marginTop: theme.spacing(1),
+              '& > *': {
+                margin: theme.spacing(1),
+                marginLeft: 0
+              }
+            }}>
               <Button
                 variant="contained"
                 color="primary"

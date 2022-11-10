@@ -8,7 +8,7 @@ export default defineConfig(({command, mode }) => {
     build: {}
   }
   if( command === 'serve' || mode === 'development' ) {
-    config.build.sourcemap = true;
+    config.build!.sourcemap = true;
   }
 
   return config;

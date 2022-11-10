@@ -1,7 +1,7 @@
 import React from 'react';
-import { useTheme } from '@material-ui/core/styles';
-import { Dialog, DialogTitle, DialogContent, Typography, useMediaQuery, IconButton } from '@material-ui/core';
-import CloseIcon from '@material-ui/icons/Close';
+import { useTheme } from '@mui/material/styles';
+import { Dialog, DialogTitle, DialogContent, Typography, useMediaQuery, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 type Props = {
   open: boolean;
@@ -14,11 +14,11 @@ export default function News({ open, onClose }: Props) {
 
   return (
     <Dialog fullScreen={fullScreen} open={open} onClose={onClose}>
-      <DialogTitle disableTypography style={{
+      <DialogTitle sx={{
         borderBottom: `1px solid ${theme.palette.grey[300]}`
       }}>
         <Typography variant="h6">What's New</Typography>
-        <IconButton onClick={onClose} aria-label="Close" color="inherit" style={{
+        <IconButton onClick={onClose} aria-label="Close" color="inherit" sx={{
           position: 'absolute',
           right: theme.spacing(1),
           top: theme.spacing(1),
